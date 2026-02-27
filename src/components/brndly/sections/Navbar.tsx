@@ -40,9 +40,12 @@ export default function Navbar({ adminHref }: Props) {
             Admin
           </Link>
 
-          <button className="inline-flex items-center px-4 py-2 rounded-full border border-purple-900 text-xs font-medium uppercase tracking-[0.18em] hover:bg-purple-900 hover:text-white transition">
+          <a
+            href="#contact"
+            className="inline-flex items-center px-4 py-2 rounded-full border border-purple-900 text-xs font-medium uppercase tracking-[0.18em] hover:bg-purple-900 hover:text-white transition"
+          >
             Price on request
-          </button>
+          </a>
         </div>
       </div>
     </header>

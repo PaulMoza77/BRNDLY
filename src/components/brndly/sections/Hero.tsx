@@ -1,26 +1,40 @@
 import React from "react";
 
-export default function Hero() {
+type Props = {
+  kicker?: string;
+  titleLine1?: string;
+  titleLine2?: string;
+  subtitle?: string;
+  ctaPrimary?: string;
+  ctaSecondary?: string;
+};
+
+export default function Hero({
+  kicker = "Social Media Agency. Different.",
+  titleLine1 = "We don't chase views.",
+  titleLine2 = "We guarantee them.",
+  subtitle = "BRNDLY. is your end–to–end social media team. We plan, film and manage your content with a clear promise: a minimum of 1.5M organic views for your brand.",
+  ctaPrimary = "Book a discovery call",
+  ctaSecondary = "View popular videos ↓",
+}: Props) {
   return (
     <section className="border-b border-slate-200">
       <div className="max-w-6xl mx-auto px-4 py-12 md:py-20 grid md:grid-cols-2 gap-12 items-center">
         <div>
           <p className="uppercase tracking-[0.3em] text-xs text-slate-500 mb-4">
-            Social Media Agency. Different.
+            {kicker}
           </p>
 
           <h1 className="text-3xl md:text-5xl font-semibold leading-tight mb-6">
-            We don&apos;t chase views.
+            {titleLine1}
             <br />
             <span className="underline underline-offset-8 decoration-purple-900">
-              We guarantee them.
+              {titleLine2}
             </span>
           </h1>
 
           <p className="text-slate-600 text-sm md:text-base mb-6 max-w-md">
-            BRNDLY. is your end–to–end social media team. We plan, film and manage
-            your content with a clear promise: a minimum of 1.5M organic views for
-            your brand.
+            {subtitle}
           </p>
 
           <div className="grid grid-cols-2 gap-3 mb-8 text-xs md:text-sm">
@@ -35,14 +49,14 @@ export default function Hero() {
               href="#contact"
               className="inline-flex items-center px-6 py-3 rounded-full bg-purple-900 text-white text-xs md:text-sm font-medium uppercase tracking-[0.18em] hover:bg-purple-800 transition"
             >
-              Book a discovery call
+              {ctaPrimary}
             </a>
 
             <a
               href="#portfolio"
               className="text-xs md:text-sm uppercase tracking-[0.18em] text-slate-500 hover:text-slate-900"
             >
-              View popular videos ↓
+              {ctaSecondary}
             </a>
           </div>
         </div>
