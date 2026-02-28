@@ -40,7 +40,7 @@ export const DEFAULT_HOME_CONFIG: HomeConfig = {
   },
 };
 
-export const HOME_CONFIG_STORAGE_KEY = "brndly_home_config_v1";
+export const HOME_CONFIG_CACHE_KEY = "brndly_home_config_cache_v1";
 
 export function safeParse<T>(s: string | null): T | null {
   if (!s) return null;
@@ -51,8 +51,9 @@ export function safeParse<T>(s: string | null): T | null {
   }
 }
 
-export function loadHomeConfig(): HomeConfig {
-  const raw = safeParse<HomeConfig>(localStorage.getItem(HOME_CONFIG_STORAGE_KEY));
+export function mergeHomeConfig(
+  raw: Partial<HomeConfig> | null | undefined
+): HomeConfig {
   if (!raw) return DEFAULT_HOME_CONFIG;
   return {
     ...DEFAULT_HOME_CONFIG,
@@ -62,6 +63,11 @@ export function loadHomeConfig(): HomeConfig {
   };
 }
 
-export function saveHomeConfig(cfg: HomeConfig) {
-  localStorage.setItem(HOME_CONFIG_STORAGE_KEY, JSON.stringify(cfg));
+export function loadCachedHomeConfig(): HomeConfig {
+  const raw = safeParse<HomeConfig>(localStorage.getItem(HOME_CONFIG_CACHE_KEY));
+  return mergeHomeConfig(raw ?? null);
+}
+
+export function saveCachedHomeConfig(cfg: HomeConfig) {
+  localStorage.setItem(HOME_CONFIG_CACHE_KEY, JSON.stringify(cfg));
 }

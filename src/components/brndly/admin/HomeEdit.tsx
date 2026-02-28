@@ -17,26 +17,25 @@ const SECTION_LABELS: Record<HomeSectionKey, string> = {
 };
 
 export default function HomeEdit() {
-  const { config, update, reset } = useHomeConfig();
-  const [savedTick, setSavedTick] = React.useState<number>(0);
+  const { config, setConfig, reset, save, saving, savedTick, error, loading } =
+    useHomeConfig();
 
   function setSectionEnabled(key: HomeSectionKey, enabled: boolean) {
-    update({
+    setConfig({
       ...config,
       sections: { ...config.sections, [key]: enabled },
     });
   }
 
   function setHero(partial: Partial<HomeConfig["hero"]>) {
-    update({
+    setConfig({
       ...config,
       hero: { ...config.hero, ...partial },
     });
   }
 
-  function handleSave() {
-    update({ ...config }); // already saved in hook, but we show feedback
-    setSavedTick(Date.now());
+  async function handleSave() {
+    await save();
   }
 
   return (
@@ -45,7 +44,7 @@ export default function HomeEdit() {
         <div>
           <h1 className="text-xl md:text-2xl font-semibold">Home Edit</h1>
           <p className="text-sm text-slate-600">
-            Controlezi ce secțiuni apar pe Home și textele din Hero. Se salvează local (localStorage).
+            Editezi Home (public) din DB. Orice salvezi aici se vede pe landing.
           </p>
         </div>
 
@@ -54,27 +53,39 @@ export default function HomeEdit() {
             onClick={reset}
             className="h-10 px-4 rounded-full border border-slate-200 bg-white text-xs uppercase tracking-[0.18em] hover:bg-slate-50"
             type="button"
+            disabled={loading || saving}
           >
             Reset
           </button>
+
           <button
             onClick={handleSave}
-            className="h-10 px-4 rounded-full bg-purple-900 text-white text-xs uppercase tracking-[0.18em] hover:bg-purple-800"
+            className="h-10 px-4 rounded-full bg-purple-900 text-white text-xs uppercase tracking-[0.18em] hover:bg-purple-800 disabled:opacity-60"
             type="button"
+            disabled={loading || saving}
           >
-            Save
+            {saving ? "Saving..." : "Save"}
           </button>
         </div>
       </div>
 
-      {savedTick > 0 && (
+      {error && (
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          ❌ {error}
+        </div>
+      )}
+
+      {savedTick > 0 && !error && (
         <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
-          ✅ Saved. Refresh Home to see changes.
+          ✅ Saved. Refresh landing to see changes.
         </div>
       )}
 
       <div className="grid md:grid-cols-2 gap-6 items-start">
-        <Card title="Show / Hide sections" subtitle="Activează sau dezactivează secțiuni din Home.">
+        <Card
+          title="Show / Hide sections"
+          subtitle="Activează sau dezactivează secțiuni din Home."
+        >
           <div className="grid gap-3">
             {(Object.keys(SECTION_LABELS) as HomeSectionKey[]).map((key) => (
               <ToggleRow
@@ -149,6 +160,7 @@ export default function HomeEdit() {
 
 function Card(props: { title: string; subtitle?: string; children: React.ReactNode }) {
   const { title, subtitle, children } = props;
+
   return (
     <div className="rounded-3xl border border-slate-200 bg-white shadow-sm p-5">
       <div className="mb-4">
@@ -162,9 +174,12 @@ function Card(props: { title: string; subtitle?: string; children: React.ReactNo
 
 function Field(props: { label: string; children: React.ReactNode }) {
   const { label, children } = props;
+
   return (
     <div className="grid gap-1">
-      <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">{label}</div>
+      <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
+        {label}
+      </div>
       {children}
     </div>
   );
@@ -176,20 +191,26 @@ function ToggleRow(props: {
   onChange: (v: boolean) => void;
 }) {
   const { label, checked, onChange } = props;
+
   return (
     <button
       type="button"
       onClick={() => onChange(!checked)}
       className={cn(
         "w-full flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition",
-        checked ? "border-purple-900 bg-purple-50" : "border-slate-200 bg-white hover:bg-slate-50"
+        checked
+          ? "border-purple-900 bg-purple-50"
+          : "border-slate-200 bg-white hover:bg-slate-50"
       )}
     >
       <div className="text-sm">{label}</div>
+
       <span
         className={cn(
           "h-6 w-11 rounded-full border flex items-center px-1",
-          checked ? "border-purple-900 bg-purple-900 justify-end" : "border-slate-300 bg-slate-100 justify-start"
+          checked
+            ? "border-purple-900 bg-purple-900 justify-end"
+            : "border-slate-300 bg-slate-100 justify-start"
         )}
       >
         <span className="h-4 w-4 rounded-full bg-white" />

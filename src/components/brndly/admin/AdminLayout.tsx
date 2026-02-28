@@ -1,6 +1,5 @@
-// src/components/brndly/admin/AdminLayout.tsx
 import { Outlet, Link } from "react-router-dom";
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 export default function AdminLayout() {
   async function logout() {
@@ -9,17 +8,26 @@ export default function AdminLayout() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", display: "grid", gridTemplateColumns: "240px 1fr" }}>
-      <aside style={{ borderRight: "1px solid #222", padding: 16 }}>
-        <div style={{ fontWeight: 700, marginBottom: 12 }}>BRNDLY Admin</div>
-        <nav style={{ display: "grid", gap: 8 }}>
-          <Link to="/admin/home">Home Edit</Link>
-          <button onClick={logout} style={{ marginTop: 12 }}>
+    <div className="min-h-screen grid grid-cols-[240px_1fr]">
+      <aside className="border-r border-slate-200 p-4">
+        <div className="font-semibold mb-3">BRNDLY Admin</div>
+
+        <nav className="grid gap-2 text-sm">
+          <Link className="hover:underline" to="/admin/home">
+            Home Edit
+          </Link>
+
+          <button
+            className="mt-3 text-left text-red-600 hover:underline"
+            onClick={logout}
+            type="button"
+          >
             Logout
           </button>
         </nav>
       </aside>
-      <main style={{ padding: 20 }}>
+
+      <main className="p-6">
         <Outlet />
       </main>
     </div>

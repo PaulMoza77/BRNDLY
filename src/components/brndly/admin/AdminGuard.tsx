@@ -1,43 +1,46 @@
 // src/components/brndly/admin/AdminGuard.tsx
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 type Props = { children: React.ReactNode };
 
 export default function AdminGuard({ children }: Props) {
-  const [loading, setLoading] = useState(true);
-  const [ok, setOk] = useState(false);
+  const [loading, setLoading] = React.useState(true);
+  const [ok, setOk] = React.useState(false);
   const location = useLocation();
 
-  useEffect(() => {
-    let alive = true;
+  const check = React.useCallback(async () => {
+    setLoading(true);
 
-    async function check() {
-      const { data } = await supabase.auth.getSession();
-      const session = data.session;
+    const { data } = await supabase.auth.getSession();
+    const session = data.session;
 
-      if (!session) {
-        if (!alive) return;
-        setOk(false);
-        setLoading(false);
-        return;
-      }
-
-      const { data: isAdmin, error } = await supabase.rpc("is_admin");
-
-      if (!alive) return;
-
-      if (error) {
-        console.error("is_admin error:", error);
-        setOk(false);
-      } else {
-        setOk(Boolean(isAdmin));
-      }
+    if (!session) {
+      setOk(false);
       setLoading(false);
+      return;
     }
 
-    check();
+    const { data: isAdmin, error } = await supabase.rpc("is_admin");
+    if (error) {
+      console.error("is_admin error:", error);
+      setOk(false);
+      setLoading(false);
+      return;
+    }
+
+    setOk(Boolean(isAdmin));
+    setLoading(false);
+  }, []);
+
+  React.useEffect(() => {
+    let alive = true;
+
+    (async () => {
+      if (!alive) return;
+      await check();
+    })();
 
     const { data: sub } = supabase.auth.onAuthStateChange(() => {
       check();
@@ -47,7 +50,7 @@ export default function AdminGuard({ children }: Props) {
       alive = false;
       sub.subscription.unsubscribe();
     };
-  }, []);
+  }, [check]);
 
   if (loading) return null;
 

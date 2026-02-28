@@ -1,21 +1,21 @@
 // src/App.tsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import HomePage from "./pages/Home";
+import HomePage from "@/pages/Home";
 
-import AdminLayout from "./components/brndly/admin/AdminLayout";
-import AdminHomeEditPage from "./components/brndly/admin/AdminHomeEdit";
-import AdminLoginPage from "./pages/admin/AdminLogin";
-import AdminGuard from "./components/brndly/admin/AdminGuard";
+import AdminLayout from "@/components/brndly/admin/AdminLayout";
+import AdminGuard from "@/components/brndly/admin/AdminGuard";
+import HomeEdit from "@/components/brndly/admin/HomeEdit";
+import AdminLoginPage from "@/pages/admin/AdminLogin";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* SITE */}
+        {/* PUBLIC SITE */}
         <Route path="/" element={<HomePage />} />
 
-        {/* ADMIN LOGIN */}
+        {/* ADMIN LOGIN (PUBLIC) */}
         <Route path="/admin/login" element={<AdminLoginPage />} />
 
         {/* ADMIN (PROTECTED) */}
@@ -28,7 +28,7 @@ export default function App() {
           }
         >
           <Route index element={<Navigate to="home" replace />} />
-          <Route path="home" element={<AdminHomeEditPage />} />
+          <Route path="home" element={<HomeEdit />} />
         </Route>
 
         {/* FALLBACK */}
