@@ -1,9 +1,8 @@
 // src/App.tsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import Home from "./pages/Home";
+import HomePage from "./pages/Home";
 
-// ✅ IMPORTANT: importă din components, NU din pages
 import AdminLayout from "./components/brndly/admin/AdminLayout";
 import AdminHomeEditPage from "./components/brndly/admin/AdminHomeEdit";
 
@@ -12,11 +11,11 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         {/* SITE */}
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<HomePage />} />
 
         {/* ADMIN */}
         <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<Navigate to="/admin/home" replace />} />
+          <Route index element={<Navigate to="home" replace />} />
           <Route path="home" element={<AdminHomeEditPage />} />
         </Route>
 

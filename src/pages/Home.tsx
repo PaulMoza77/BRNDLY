@@ -1,6 +1,6 @@
-// src/pages/admin/AdminHomeEdit.tsx
-import HomeEdit from "../components/brndly/admin/HomeEdit";
+// src/pages/Home.tsx
+import BrndlyLandingPreview from "../components/brndly/BrndlyLandingPreview";
 
-export default function AdminHomeEditPage() {
-  return <HomeEdit />;
+export default function HomePage() {
+  return <BrndlyLandingPreview />;
 }
