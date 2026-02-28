@@ -1,40 +1,45 @@
+// src/components/brndly/sections/Brands.tsx
+import type { BrandCardItem } from "@/components/brndly/admin/homeConfig";
 
-export default function Brands() {
+type Props = {
+  kicker?: string;
+  title?: string;
+  sideNote?: string;
+  cards?: BrandCardItem[];
+};
+
+export default function Brands({
+  kicker = "Brands",
+  title = "Trusted by category leaders & bold newcomers.",
+  sideNote =
+    "From hospitality and real estate to tech, medical and personal brands — BRNDLY. adapts the content to your world.",
+  cards = [],
+}: Props) {
   return (
     <section id="brands" className="border-b border-slate-200">
       <div className="max-w-6xl mx-auto px-4 py-12 md:py-16">
         <div className="flex items-end justify-between gap-4 mb-8">
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-              Brands
+              {kicker}
             </p>
-            <h2 className="text-xl md:text-2xl font-semibold">
-              Trusted by category leaders & bold newcomers.
-            </h2>
+            <h2 className="text-xl md:text-2xl font-semibold">{title}</h2>
           </div>
 
           <p className="hidden md:block text-xs text-slate-500 max-w-xs text-right">
-            From hospitality and real estate to tech, medical and personal brands — BRNDLY.
-            adapts the content to your world.
+            {sideNote}
           </p>
         </div>
 
         <div className="grid sm:grid-cols-3 gap-4 text-xs">
-          <BrandCard
-            tag="Hospitality"
-            title="Hotels, restaurants & nightlife concepts"
-            note="High–impact visuals, full venues and booked–out weekends."
-          />
-          <BrandCard
-            tag="Real Estate"
-            title="Developers, brokers & luxury rentals"
-            note="Story–driven tours that sell lifestyle, not only square meters."
-          />
-          <BrandCard
-            tag="Personal Brands"
-            title="Founders, doctors, coaches & artists"
-            note="You speak. We package the message in clips people save and share."
-          />
+          {cards.map((c, idx) => (
+            <BrandCard
+              key={`${c.tag}-${idx}`}
+              tag={c.tag}
+              title={c.title}
+              note={c.note}
+            />
+          ))}
         </div>
       </div>
     </section>

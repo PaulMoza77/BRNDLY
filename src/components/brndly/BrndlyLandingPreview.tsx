@@ -1,3 +1,4 @@
+// src/components/brndly/BrndlyLandingPreview.tsx
 import Navbar from "./sections/Navbar";
 import Hero from "./sections/Hero";
 import About from "./sections/About";
@@ -32,9 +33,27 @@ export default function BrndlyLandingPreview({
       <main className="flex-1">
         {cfg.sections.hero && <Hero {...cfg.hero} />}
         {cfg.sections.about && <About />}
-        {cfg.sections.brands && <Brands />}
+
+        {cfg.sections.brands && (
+          <Brands
+            kicker={cfg.brands.kicker}
+            title={cfg.brands.title}
+            sideNote={cfg.brands.sideNote}
+            cards={cfg.brands.cards}
+          />
+        )}
+
         {cfg.sections.regions && <Regions />}
-        {cfg.sections.portfolio && <Portfolio />}
+
+        {cfg.sections.portfolio && (
+          <Portfolio
+            kicker={cfg.portfolio.kicker}
+            title={cfg.portfolio.title}
+            ctaText={cfg.portfolio.ctaText}
+            items={cfg.portfolio.items}
+          />
+        )}
+
         {cfg.sections.pricing && <Pricing />}
         {cfg.sections.contact && <Contact onSubmitLead={onSubmitLead} />}
       </main>

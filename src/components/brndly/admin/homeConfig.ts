@@ -1,3 +1,5 @@
+// src/components/brndly/admin/homeConfig.ts
+
 export type HomeSectionKey =
   | "hero"
   | "about"
@@ -7,8 +9,27 @@ export type HomeSectionKey =
   | "pricing"
   | "contact";
 
+export type BrandCardItem = {
+  tag: string;
+  title: string;
+  note: string;
+};
+
+export type PortfolioPlatform = "tiktok" | "reels" | "youtube" | "other";
+
+export type PortfolioItem = {
+  title: string; // ex: "Video case study 1"
+  platform: PortfolioPlatform; // reels / tiktok etc
+  viewsText: string; // ex: "730k views"
+  engagementText: string; // ex: "Saved 12k • Sent 4k"
+  description: string; // text mic sub stats
+  thumbUrl: string; // imagine / placeholder
+  videoUrl: string; // link (YT/TikTok/Reels/MP4)
+};
+
 export type HomeConfig = {
   sections: Record<HomeSectionKey, boolean>;
+
   hero: {
     kicker: string;
     titleLine1: string;
@@ -16,6 +37,20 @@ export type HomeConfig = {
     subtitle: string;
     ctaPrimary: string;
     ctaSecondary: string;
+  };
+
+  brands: {
+    kicker: string;
+    title: string;
+    sideNote: string;
+    cards: BrandCardItem[];
+  };
+
+  portfolio: {
+    kicker: string;
+    title: string;
+    ctaText: string;
+    items: PortfolioItem[];
   };
 };
 
@@ -29,6 +64,7 @@ export const DEFAULT_HOME_CONFIG: HomeConfig = {
     pricing: true,
     contact: true,
   },
+
   hero: {
     kicker: "Social Media Agency. Different.",
     titleLine1: "We don't chase views.",
@@ -38,9 +74,71 @@ export const DEFAULT_HOME_CONFIG: HomeConfig = {
     ctaPrimary: "Book a discovery call",
     ctaSecondary: "View popular videos ↓",
   },
+
+  brands: {
+    kicker: "Brands",
+    title: "Trusted by category leaders & bold newcomers.",
+    sideNote:
+      "From hospitality and real estate to tech, medical and personal brands — BRNDLY. adapts the content to your world.",
+    cards: [
+      {
+        tag: "Hospitality",
+        title: "Hotels, restaurants & nightlife concepts",
+        note: "High–impact visuals, full venues and booked–out weekends.",
+      },
+      {
+        tag: "Real Estate",
+        title: "Developers, brokers & luxury rentals",
+        note: "Story–driven tours that sell lifestyle, not only square meters.",
+      },
+      {
+        tag: "Personal Brands",
+        title: "Founders, doctors, coaches & artists",
+        note: "You speak. We package the message in clips people save and share.",
+      },
+    ],
+  },
+
+  portfolio: {
+    kicker: "Popular videos",
+    title: "Snaps from recent campaigns.",
+    ctaText: "Request full portfolio →",
+    items: [
+      {
+        title: "Video case study 1",
+        platform: "reels",
+        viewsText: "730k views",
+        engagementText: "Saved 12k • Sent 4k",
+        description:
+          "Product–led storytelling for a lifestyle brand. Shot in 1 day, edited in 72 hours.",
+        thumbUrl: "https://placehold.co/900x600?text=Video+1",
+        videoUrl: "https://example.com",
+      },
+      {
+        title: "Video case study 2",
+        platform: "tiktok",
+        viewsText: "1.2M views",
+        engagementText: "Saved 18k • Sent 6k",
+        description:
+          "Launch sprint content: hook-first edits and fast iteration based on retention curves.",
+        thumbUrl: "https://placehold.co/900x600?text=Video+2",
+        videoUrl: "https://example.com",
+      },
+      {
+        title: "Video case study 3",
+        platform: "youtube",
+        viewsText: "410k views",
+        engagementText: "Comments 2.1k • Likes 21k",
+        description:
+          "Long-form cutdowns into shorts + reels with consistent brand framing.",
+        thumbUrl: "https://placehold.co/900x600?text=Video+3",
+        videoUrl: "https://example.com",
+      },
+    ],
+  },
 };
 
-export const HOME_CONFIG_CACHE_KEY = "brndly_home_config_cache_v1";
+export const HOME_CONFIG_CACHE_KEY = "brndly_home_config_cache_v2";
 
 export function safeParse<T>(s: string | null): T | null {
   if (!s) return null;
@@ -51,16 +149,61 @@ export function safeParse<T>(s: string | null): T | null {
   }
 }
 
-export function mergeHomeConfig(
-  raw: Partial<HomeConfig> | null | undefined
-): HomeConfig {
+function isNonEmptyArray<T>(v: unknown): v is T[] {
+  return Array.isArray(v) && v.length > 0;
+}
+
+export function mergeHomeConfig(raw: Partial<HomeConfig> | null | undefined): HomeConfig {
   if (!raw) return DEFAULT_HOME_CONFIG;
-  return {
+
+  const merged: HomeConfig = {
     ...DEFAULT_HOME_CONFIG,
     ...raw,
-    sections: { ...DEFAULT_HOME_CONFIG.sections, ...(raw.sections ?? {}) },
-    hero: { ...DEFAULT_HOME_CONFIG.hero, ...(raw.hero ?? {}) },
+
+    sections: {
+      ...DEFAULT_HOME_CONFIG.sections,
+      ...(raw.sections ?? {}),
+    },
+
+    hero: {
+      ...DEFAULT_HOME_CONFIG.hero,
+      ...(raw.hero ?? {}),
+    },
+
+    brands: {
+      ...DEFAULT_HOME_CONFIG.brands,
+      ...(raw.brands ?? {}),
+      cards: isNonEmptyArray<BrandCardItem>((raw.brands as any)?.cards)
+        ? ((raw.brands as any).cards as BrandCardItem[]).map((c) => ({
+            tag: String((c as any)?.tag ?? ""),
+            title: String((c as any)?.title ?? ""),
+            note: String((c as any)?.note ?? ""),
+          }))
+        : DEFAULT_HOME_CONFIG.brands.cards,
+    },
+
+    portfolio: {
+      ...DEFAULT_HOME_CONFIG.portfolio,
+      ...(raw.portfolio ?? {}),
+      items: isNonEmptyArray<PortfolioItem>((raw.portfolio as any)?.items)
+        ? ((raw.portfolio as any).items as PortfolioItem[]).map((it) => ({
+            title: String((it as any)?.title ?? ""),
+            platform: (["tiktok", "reels", "youtube", "other"].includes(
+              String((it as any)?.platform ?? "other")
+            )
+              ? (String((it as any)?.platform ?? "other") as PortfolioPlatform)
+              : "other") as PortfolioPlatform,
+            viewsText: String((it as any)?.viewsText ?? ""),
+            engagementText: String((it as any)?.engagementText ?? ""),
+            description: String((it as any)?.description ?? ""),
+            thumbUrl: String((it as any)?.thumbUrl ?? ""),
+            videoUrl: String((it as any)?.videoUrl ?? ""),
+          }))
+        : DEFAULT_HOME_CONFIG.portfolio.items,
+    },
   };
+
+  return merged;
 }
 
 export function loadCachedHomeConfig(): HomeConfig {
