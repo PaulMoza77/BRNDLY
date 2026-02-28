@@ -5,6 +5,8 @@ import HomePage from "./pages/Home";
 
 import AdminLayout from "./components/brndly/admin/AdminLayout";
 import AdminHomeEditPage from "./components/brndly/admin/AdminHomeEdit";
+import AdminLoginPage from "./pages/admin/AdminLogin";
+import AdminGuard from "./components/brndly/admin/AdminGuard";
 
 export default function App() {
   return (
@@ -13,8 +15,18 @@ export default function App() {
         {/* SITE */}
         <Route path="/" element={<HomePage />} />
 
-        {/* ADMIN */}
-        <Route path="/admin" element={<AdminLayout />}>
+        {/* ADMIN LOGIN */}
+        <Route path="/admin/login" element={<AdminLoginPage />} />
+
+        {/* ADMIN (PROTECTED) */}
+        <Route
+          path="/admin"
+          element={
+            <AdminGuard>
+              <AdminLayout />
+            </AdminGuard>
+          }
+        >
           <Route index element={<Navigate to="home" replace />} />
           <Route path="home" element={<AdminHomeEditPage />} />
         </Route>

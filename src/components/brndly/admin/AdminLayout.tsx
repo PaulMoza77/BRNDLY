@@ -1,44 +1,25 @@
 // src/components/brndly/admin/AdminLayout.tsx
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Outlet, Link } from "react-router-dom";
+import { supabase } from "../../../lib/supabase";
 
 export default function AdminLayout() {
-  const loc = useLocation();
-  const onHomeEdit = loc.pathname.startsWith("/admin/home");
+  async function logout() {
+    await supabase.auth.signOut();
+    window.location.href = "/admin/login";
+  }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="border-b border-slate-200 bg-white/80 backdrop-blur sticky top-0 z-20">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-semibold tracking-[0.35em] uppercase">
-              BRNDLY ADMIN
-            </span>
-
-            <Link
-              to="/"
-              className="text-xs text-slate-500 hover:text-slate-900"
-            >
-              ← Back to site
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Link
-              to="/admin/home"
-              className={[
-                "px-4 py-2 rounded-full text-xs font-medium uppercase tracking-[0.18em] transition",
-                onHomeEdit
-                  ? "bg-purple-900 text-white"
-                  : "border border-slate-200 hover:bg-slate-900 hover:text-white",
-              ].join(" ")}
-            >
-              Home Edit
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-4 py-8">
+    <div style={{ minHeight: "100vh", display: "grid", gridTemplateColumns: "240px 1fr" }}>
+      <aside style={{ borderRight: "1px solid #222", padding: 16 }}>
+        <div style={{ fontWeight: 700, marginBottom: 12 }}>BRNDLY Admin</div>
+        <nav style={{ display: "grid", gap: 8 }}>
+          <Link to="/admin/home">Home Edit</Link>
+          <button onClick={logout} style={{ marginTop: 12 }}>
+            Logout
+          </button>
+        </nav>
+      </aside>
+      <main style={{ padding: 20 }}>
         <Outlet />
       </main>
     </div>
