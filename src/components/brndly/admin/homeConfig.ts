@@ -95,6 +95,7 @@ export const DEFAULT_HOME_CONFIG: HomeConfig = {
       { id: "clips", label: "Clips", value: "120+", note: "monthly assets" },
       { id: "time", label: "Time", value: "7d", note: "average delivery" },
     ],
+
     chips: ["TikTok • 840k", "Reels • 420k", "Shorts • 260k"],
   },
 
@@ -179,22 +180,24 @@ function isNonEmptyArray<T>(v: unknown): v is T[] {
 
 function normalizeMetrics(v: unknown): HeroMetric[] | null {
   if (!isNonEmptyArray<any>(v)) return null;
-  return v.map((m, i) => ({
-    id: String(m?.id ?? `m${i}`),
-    label: String(m?.label ?? ""),
-    value: String(m?.value ?? ""),
-    note: String(m?.note ?? ""),
-  }));
+
+  const fallbackIds = ["views", "clips", "time"];
+  return v
+    .map((m, i) => ({
+      id: String(m?.id ?? fallbackIds[i] ?? `m${i}`),
+      label: String(m?.label ?? ""),
+      value: String(m?.value ?? ""),
+      note: String(m?.note ?? ""),
+    }))
+    .slice(0, 3);
 }
 
 function normalizeChips(v: unknown): string[] | null {
   if (!isNonEmptyArray<any>(v)) return null;
-  return v.map((x) => String(x ?? ""));
+  return v.map((x) => String(x ?? "")).slice(0, 3);
 }
 
-export function mergeHomeConfig(
-  raw: Partial<HomeConfig> | null | undefined
-): HomeConfig {
+export function mergeHomeConfig(raw: Partial<HomeConfig> | null | undefined): HomeConfig {
   if (!raw) return DEFAULT_HOME_CONFIG;
 
   const merged: HomeConfig = {
@@ -209,12 +212,8 @@ export function mergeHomeConfig(
     hero: {
       ...DEFAULT_HOME_CONFIG.hero,
       ...(raw.hero ?? {}),
-      metrics:
-        normalizeMetrics((raw.hero as any)?.metrics) ??
-        DEFAULT_HOME_CONFIG.hero.metrics,
-      chips:
-        normalizeChips((raw.hero as any)?.chips) ??
-        DEFAULT_HOME_CONFIG.hero.chips,
+      metrics: normalizeMetrics((raw.hero as any)?.metrics) ?? DEFAULT_HOME_CONFIG.hero.metrics,
+      chips: normalizeChips((raw.hero as any)?.chips) ?? DEFAULT_HOME_CONFIG.hero.chips,
     },
 
     brands: {
@@ -254,9 +253,7 @@ export function mergeHomeConfig(
 }
 
 export function loadCachedHomeConfig(): HomeConfig {
-  const raw = safeParse<HomeConfig>(
-    localStorage.getItem(HOME_CONFIG_CACHE_KEY)
-  );
+  const raw = safeParse<HomeConfig>(localStorage.getItem(HOME_CONFIG_CACHE_KEY));
   return mergeHomeConfig(raw ?? null);
 }
 

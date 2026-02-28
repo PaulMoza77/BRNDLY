@@ -1,3 +1,4 @@
+// src/components/brndly/sections/Hero.tsx
 import React from "react";
 
 type HeroMetric = {
@@ -18,11 +19,9 @@ type Props = {
   reelVideoUrl?: string;
   reelThumbUrl?: string;
 
-  // NEW
   metrics?: HeroMetric[];
   chips?: string[];
 
-  // Admin live preview
   editable?: boolean;
   onReorderMetrics?: (fromIndex: number, toIndex: number) => void;
   onUpdateMetric?: (id: string, partial: Partial<HeroMetric>) => void;
@@ -50,9 +49,13 @@ export default function Hero({
   editable = false,
   onReorderMetrics,
 }: Props) {
+  const safeMetrics = (metrics ?? []).slice(0, 3);
+  const safeChips = (chips ?? []).slice(0, 3);
+
   return (
     <section className="border-b border-slate-200">
       <div className="max-w-6xl mx-auto px-4 py-12 md:py-20 grid md:grid-cols-2 gap-12 items-center">
+        {/* LEFT */}
         <div>
           <p className="uppercase tracking-[0.3em] text-xs text-slate-500 mb-4">
             {kicker}
@@ -94,6 +97,7 @@ export default function Hero({
           </div>
         </div>
 
+        {/* RIGHT */}
         <div className="space-y-4">
           <div className="border border-slate-200 rounded-3xl bg-white/90 shadow-md hover:shadow-xl hover:-translate-y-1 transition-transform transition-shadow duration-300 p-4 md:p-5 flex flex-col gap-4">
             <div className="flex items-center justify-between gap-4">
@@ -101,9 +105,7 @@ export default function Hero({
                 <p className="text-xs uppercase tracking-[0.2em] text-slate-500 mb-1">
                   Campaign snapshot
                 </p>
-                <p className="text-sm font-medium">
-                  Launch a 90–day content sprint.
-                </p>
+                <p className="text-sm font-medium">Launch a 90–day content sprint.</p>
               </div>
 
               <span className="px-3 py-1 rounded-full border border-slate-200 text-[10px] uppercase tracking-[0.2em] text-slate-500">
@@ -132,14 +134,17 @@ export default function Hero({
                 </div>
               </div>
 
-              {/* Metrics (drag & drop in admin preview) */}
-              <div className="grid gap-2 md:grid-cols-1 grid-cols-2 auto-rows-fr">
-                {metrics.map((m, idx) => {
+              {/* Metrics */}
+              <div className="grid gap-2 grid-cols-2 md:grid-cols-1 auto-rows-fr">
+                {safeMetrics.map((m, idx) => {
                   const isLastOnMobile = idx === 2;
                   return (
                     <div
                       key={m.id}
-                      className={`${isLastOnMobile ? "col-span-2 md:col-span-1" : ""} ${editable ? "cursor-move" : ""}`}
+                      className={[
+                        isLastOnMobile ? "col-span-2 md:col-span-1" : "",
+                        editable ? "cursor-move" : "",
+                      ].join(" ")}
                       draggable={editable}
                       onDragStart={(e) => {
                         if (!editable) return;
@@ -169,7 +174,7 @@ export default function Hero({
 
             {/* Chips */}
             <div className="grid grid-cols-3 gap-2 text-[10px]">
-              {chips.slice(0, 3).map((c, i) => (
+              {safeChips.map((c, i) => (
                 <Chip key={i}>{c}</Chip>
               ))}
             </div>
@@ -182,8 +187,8 @@ export default function Hero({
           </div>
 
           <p className="text-[11px] text-slate-500">
-            * We guarantee a minimum of 1.5M organic views for eligible campaigns.
-            Exact numbers may vary by brand and region.
+            * We guarantee a minimum of 1.5M organic views for eligible campaigns. Exact numbers
+            may vary by brand and region.
           </p>
         </div>
       </div>
@@ -219,12 +224,8 @@ function CompactMetric({
       </div>
 
       <div className="mt-1">
-        <div className="text-base md:text-lg font-semibold leading-none">
-          {value}
-        </div>
-        <div className="text-[11px] text-slate-500 mt-1 leading-snug">
-          {note}
-        </div>
+        <div className="text-base md:text-lg font-semibold leading-none">{value}</div>
+        <div className="text-[11px] text-slate-500 mt-1 leading-snug">{note}</div>
       </div>
     </div>
   );

@@ -44,10 +44,15 @@ function Panel(props: {
       >
         <div>
           <div className="text-sm font-semibold">{title}</div>
-          {subtitle && <div className="text-xs text-slate-500 mt-1">{subtitle}</div>}
+          {subtitle && (
+            <div className="text-xs text-slate-500 mt-1">{subtitle}</div>
+          )}
         </div>
         <ChevronDown
-          className={cn("h-4 w-4 text-slate-500 transition-transform", open && "rotate-180")}
+          className={cn(
+            "h-4 w-4 text-slate-500 transition-transform",
+            open && "rotate-180"
+          )}
         />
       </button>
 
@@ -59,7 +64,9 @@ function Panel(props: {
 function Field(props: { label: string; children: React.ReactNode }) {
   return (
     <div className="grid gap-1">
-      <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">{props.label}</div>
+      <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
+        {props.label}
+      </div>
       {props.children}
     </div>
   );
@@ -89,7 +96,11 @@ function Textarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   );
 }
 
-function ToggleRow(props: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+function ToggleRow(props: {
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
   const { label, checked, onChange } = props;
   return (
     <button
@@ -97,14 +108,18 @@ function ToggleRow(props: { label: string; checked: boolean; onChange: (v: boole
       onClick={() => onChange(!checked)}
       className={cn(
         "w-full flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition",
-        checked ? "border-purple-900 bg-purple-50" : "border-slate-200 bg-white hover:bg-slate-50"
+        checked
+          ? "border-purple-900 bg-purple-50"
+          : "border-slate-200 bg-white hover:bg-slate-50"
       )}
     >
       <div className="text-sm">{label}</div>
       <span
         className={cn(
           "h-6 w-11 rounded-full border flex items-center px-1",
-          checked ? "border-purple-900 bg-purple-900 justify-end" : "border-slate-300 bg-slate-100 justify-start"
+          checked
+            ? "border-purple-900 bg-purple-900 justify-end"
+            : "border-slate-300 bg-slate-100 justify-start"
         )}
       >
         <span className="h-4 w-4 rounded-full bg-white" />
@@ -114,7 +129,8 @@ function ToggleRow(props: { label: string; checked: boolean; onChange: (v: boole
 }
 
 export default function HomeEdit() {
-  const { config, setConfig, reset, save, saving, savedTick, error, loading } = useHomeConfig();
+  const { config, setConfig, reset, save, saving, savedTick, error, loading } =
+    useHomeConfig();
 
   function setSectionEnabled(key: HomeSectionKey, enabled: boolean) {
     setConfig({ ...config, sections: { ...config.sections, [key]: enabled } });
@@ -129,7 +145,9 @@ export default function HomeEdit() {
   }
 
   function updateBrandCard(index: number, partial: Partial<BrandCardItem>) {
-    const next = config.brands.cards.map((c, i) => (i === index ? { ...c, ...partial } : c));
+    const next = config.brands.cards.map((c, i) =>
+      i === index ? { ...c, ...partial } : c
+    );
     setBrands({ cards: next });
   }
 
@@ -151,7 +169,9 @@ export default function HomeEdit() {
   }
 
   function updatePortfolioItem(index: number, partial: Partial<PortfolioItem>) {
-    const next = config.portfolio.items.map((it, i) => (i === index ? { ...it, ...partial } : it));
+    const next = config.portfolio.items.map((it, i) =>
+      i === index ? { ...it, ...partial } : it
+    );
     setPortfolio({ items: next });
   }
 
@@ -201,7 +221,8 @@ export default function HomeEdit() {
         <div>
           <h1 className="text-xl md:text-2xl font-semibold">Home Edit</h1>
           <p className="text-sm text-slate-600">
-            Editezi conținutul (texte/imagini/video linkuri) + vezi preview live. Save scrie în DB.
+            Editezi conținutul (texte/imagini/video linkuri) + vezi preview live.
+            Save scrie în DB.
           </p>
         </div>
 
@@ -241,7 +262,11 @@ export default function HomeEdit() {
       <div className="grid lg:grid-cols-[560px_1fr] gap-6 items-start">
         {/* LEFT: EDITOR */}
         <div className="grid gap-6">
-          <Panel title="Show / Hide sections" subtitle="Activează/dezactivează secțiuni." defaultOpen>
+          <Panel
+            title="Show / Hide sections"
+            subtitle="Activează/dezactivează secțiuni."
+            defaultOpen
+          >
             <div className="grid gap-3">
               {(Object.keys(SECTION_LABELS) as HomeSectionKey[]).map((key) => (
                 <ToggleRow
@@ -254,10 +279,17 @@ export default function HomeEdit() {
             </div>
           </Panel>
 
-          <Panel title="Hero" subtitle="Editează textele + video din Hero." defaultOpen>
+          <Panel
+            title="Hero"
+            subtitle="Editează textele + video + metrics/chips din Hero."
+            defaultOpen
+          >
             <div className="grid gap-3">
               <Field label="Kicker">
-                <Input value={config.hero.kicker} onChange={(e) => setHero({ kicker: e.target.value })} />
+                <Input
+                  value={config.hero.kicker}
+                  onChange={(e) => setHero({ kicker: e.target.value })}
+                />
               </Field>
 
               <div className="grid sm:grid-cols-2 gap-3">
@@ -276,7 +308,10 @@ export default function HomeEdit() {
               </div>
 
               <Field label="Subtitle">
-                <Textarea value={config.hero.subtitle} onChange={(e) => setHero({ subtitle: e.target.value })} />
+                <Textarea
+                  value={config.hero.subtitle}
+                  onChange={(e) => setHero({ subtitle: e.target.value })}
+                />
               </Field>
 
               <div className="grid sm:grid-cols-2 gap-3">
@@ -331,7 +366,9 @@ export default function HomeEdit() {
                       Current: {config.hero.reelVideoUrl}
                     </div>
                   ) : (
-                    <div className="text-xs text-slate-400">No video uploaded.</div>
+                    <div className="text-xs text-slate-400">
+                      No video uploaded.
+                    </div>
                   )}
                 </div>
               </Field>
@@ -343,22 +380,114 @@ export default function HomeEdit() {
                   placeholder="https://... (optional)"
                 />
               </Field>
+
+              {/* ===== NEW: HERO METRICS EDITOR ===== */}
+              <Field label="Hero metrics (edit + reorder)">
+                <div className="grid gap-3">
+                  {(config.hero.metrics || []).map((m, idx) => (
+                    <div
+                      key={m.id}
+                      className="rounded-2xl border border-slate-200 p-3 grid gap-2"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-semibold">
+                          Metric #{idx + 1}
+                        </div>
+                        <div className="text-[10px] text-slate-500">
+                          Drag in preview to reorder
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <Input
+                          value={m.label}
+                          onChange={(e) => {
+                            const next = (config.hero.metrics || []).map((x) =>
+                              x.id === m.id
+                                ? { ...x, label: e.target.value }
+                                : x
+                            );
+                            setHero({ metrics: next });
+                          }}
+                          placeholder="Label"
+                        />
+                        <Input
+                          value={m.value}
+                          onChange={(e) => {
+                            const next = (config.hero.metrics || []).map((x) =>
+                              x.id === m.id
+                                ? { ...x, value: e.target.value }
+                                : x
+                            );
+                            setHero({ metrics: next });
+                          }}
+                          placeholder="Value"
+                        />
+                      </div>
+
+                      <Input
+                        value={m.note}
+                        onChange={(e) => {
+                          const next = (config.hero.metrics || []).map((x) =>
+                            x.id === m.id ? { ...x, note: e.target.value } : x
+                          );
+                          setHero({ metrics: next });
+                        }}
+                        placeholder="Note"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </Field>
+
+              {/* ===== NEW: HERO CHIPS EDITOR ===== */}
+              <Field label="Hero chips (3 items)">
+                <div className="grid gap-2">
+                  {(config.hero.chips || ["", "", ""]).slice(0, 3).map((c, i) => (
+                    <Input
+                      key={i}
+                      value={c}
+                      onChange={(e) => {
+                        const base = (config.hero.chips || ["", "", ""]).slice(
+                          0,
+                          3
+                        );
+                        base[i] = e.target.value;
+                        setHero({ chips: base });
+                      }}
+                      placeholder={`Chip ${i + 1}`}
+                    />
+                  ))}
+                </div>
+              </Field>
             </div>
           </Panel>
 
-          <Panel title="Brands" subtitle="Editează heading + carduri (tag/title/note).">
+          <Panel
+            title="Brands"
+            subtitle="Editează heading + carduri (tag/title/note)."
+          >
             <div className="grid gap-3">
               <div className="grid sm:grid-cols-2 gap-3">
                 <Field label="Kicker">
-                  <Input value={config.brands.kicker} onChange={(e) => setBrands({ kicker: e.target.value })} />
+                  <Input
+                    value={config.brands.kicker}
+                    onChange={(e) => setBrands({ kicker: e.target.value })}
+                  />
                 </Field>
                 <Field label="Title">
-                  <Input value={config.brands.title} onChange={(e) => setBrands({ title: e.target.value })} />
+                  <Input
+                    value={config.brands.title}
+                    onChange={(e) => setBrands({ title: e.target.value })}
+                  />
                 </Field>
               </div>
 
               <Field label="Side note (right text)">
-                <Textarea value={config.brands.sideNote} onChange={(e) => setBrands({ sideNote: e.target.value })} />
+                <Textarea
+                  value={config.brands.sideNote}
+                  onChange={(e) => setBrands({ sideNote: e.target.value })}
+                />
               </Field>
 
               <div className="flex items-center justify-between">
@@ -374,7 +503,10 @@ export default function HomeEdit() {
 
               <div className="grid gap-3">
                 {config.brands.cards.map((c, idx) => (
-                  <div key={idx} className="rounded-2xl border border-slate-200 p-4 grid gap-3">
+                  <div
+                    key={idx}
+                    className="rounded-2xl border border-slate-200 p-4 grid gap-3"
+                  >
                     <div className="flex items-center justify-between">
                       <div className="text-sm font-medium">Card #{idx + 1}</div>
                       <button
@@ -388,13 +520,28 @@ export default function HomeEdit() {
 
                     <div className="grid sm:grid-cols-3 gap-3">
                       <Field label="Tag">
-                        <Input value={c.tag} onChange={(e) => updateBrandCard(idx, { tag: e.target.value })} />
+                        <Input
+                          value={c.tag}
+                          onChange={(e) =>
+                            updateBrandCard(idx, { tag: e.target.value })
+                          }
+                        />
                       </Field>
                       <Field label="Title">
-                        <Input value={c.title} onChange={(e) => updateBrandCard(idx, { title: e.target.value })} />
+                        <Input
+                          value={c.title}
+                          onChange={(e) =>
+                            updateBrandCard(idx, { title: e.target.value })
+                          }
+                        />
                       </Field>
                       <Field label="Note">
-                        <Input value={c.note} onChange={(e) => updateBrandCard(idx, { note: e.target.value })} />
+                        <Input
+                          value={c.note}
+                          onChange={(e) =>
+                            updateBrandCard(idx, { note: e.target.value })
+                          }
+                        />
                       </Field>
                     </div>
                   </div>
@@ -403,19 +550,33 @@ export default function HomeEdit() {
             </div>
           </Panel>
 
-          <Panel title="Portfolio" subtitle="Editează heading + lista de videos (thumb + link + texte).">
+          <Panel
+            title="Portfolio"
+            subtitle="Editează heading + lista de videos (thumb + link + texte)."
+          >
             <div className="grid gap-3">
               <div className="grid sm:grid-cols-2 gap-3">
                 <Field label="Kicker">
-                  <Input value={config.portfolio.kicker} onChange={(e) => setPortfolio({ kicker: e.target.value })} />
+                  <Input
+                    value={config.portfolio.kicker}
+                    onChange={(e) =>
+                      setPortfolio({ kicker: e.target.value })
+                    }
+                  />
                 </Field>
                 <Field label="Title">
-                  <Input value={config.portfolio.title} onChange={(e) => setPortfolio({ title: e.target.value })} />
+                  <Input
+                    value={config.portfolio.title}
+                    onChange={(e) => setPortfolio({ title: e.target.value })}
+                  />
                 </Field>
               </div>
 
               <Field label="CTA text (button)">
-                <Input value={config.portfolio.ctaText} onChange={(e) => setPortfolio({ ctaText: e.target.value })} />
+                <Input
+                  value={config.portfolio.ctaText}
+                  onChange={(e) => setPortfolio({ ctaText: e.target.value })}
+                />
               </Field>
 
               <div className="flex items-center justify-between">
@@ -431,7 +592,10 @@ export default function HomeEdit() {
 
               <div className="grid gap-3">
                 {config.portfolio.items.map((it, idx) => (
-                  <div key={idx} className="rounded-2xl border border-slate-200 p-4 grid gap-3">
+                  <div
+                    key={idx}
+                    className="rounded-2xl border border-slate-200 p-4 grid gap-3"
+                  >
                     <div className="flex items-center justify-between">
                       <div className="text-sm font-medium">Video #{idx + 1}</div>
                       <button
@@ -445,14 +609,23 @@ export default function HomeEdit() {
 
                     <div className="grid sm:grid-cols-2 gap-3">
                       <Field label="Title">
-                        <Input value={it.title} onChange={(e) => updatePortfolioItem(idx, { title: e.target.value })} />
+                        <Input
+                          value={it.title}
+                          onChange={(e) =>
+                            updatePortfolioItem(idx, {
+                              title: e.target.value,
+                            })
+                          }
+                        />
                       </Field>
 
                       <Field label="Platform">
                         <select
                           value={it.platform}
                           onChange={(e) =>
-                            updatePortfolioItem(idx, { platform: e.target.value as PortfolioPlatform })
+                            updatePortfolioItem(idx, {
+                              platform: e.target.value as PortfolioPlatform,
+                            })
                           }
                           className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm bg-white"
                         >
@@ -468,14 +641,22 @@ export default function HomeEdit() {
                       <Field label="Thumb URL (image)">
                         <Input
                           value={it.thumbUrl}
-                          onChange={(e) => updatePortfolioItem(idx, { thumbUrl: e.target.value })}
+                          onChange={(e) =>
+                            updatePortfolioItem(idx, {
+                              thumbUrl: e.target.value,
+                            })
+                          }
                         />
                       </Field>
 
                       <Field label="Video URL (opens on click)">
                         <Input
                           value={it.videoUrl}
-                          onChange={(e) => updatePortfolioItem(idx, { videoUrl: e.target.value })}
+                          onChange={(e) =>
+                            updatePortfolioItem(idx, {
+                              videoUrl: e.target.value,
+                            })
+                          }
                         />
                       </Field>
                     </div>
@@ -484,13 +665,21 @@ export default function HomeEdit() {
                       <Field label="Views text">
                         <Input
                           value={it.viewsText}
-                          onChange={(e) => updatePortfolioItem(idx, { viewsText: e.target.value })}
+                          onChange={(e) =>
+                            updatePortfolioItem(idx, {
+                              viewsText: e.target.value,
+                            })
+                          }
                         />
                       </Field>
                       <Field label="Engagement text">
                         <Input
                           value={it.engagementText}
-                          onChange={(e) => updatePortfolioItem(idx, { engagementText: e.target.value })}
+                          onChange={(e) =>
+                            updatePortfolioItem(idx, {
+                              engagementText: e.target.value,
+                            })
+                          }
                         />
                       </Field>
                     </div>
@@ -498,7 +687,11 @@ export default function HomeEdit() {
                     <Field label="Description">
                       <Textarea
                         value={it.description}
-                        onChange={(e) => updatePortfolioItem(idx, { description: e.target.value })}
+                        onChange={(e) =>
+                          updatePortfolioItem(idx, {
+                            description: e.target.value,
+                          })
+                        }
                       />
                     </Field>
                   </div>
@@ -512,16 +705,27 @@ export default function HomeEdit() {
         <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
             <div className="text-sm font-semibold">Live Preview</div>
-            <div className="text-xs text-slate-500">Se schimbă instant, fără Save</div>
+            <div className="text-xs text-slate-500">
+              Se schimbă instant, fără Save
+            </div>
           </div>
 
           <div className="h-[calc(100vh-220px)] overflow-auto bg-slate-50">
             <div className="p-4">
               <div
-                style={{ transform: "scale(0.9)", transformOrigin: "top left", width: "111.111%" }}
+                style={{
+                  transform: "scale(0.9)",
+                  transformOrigin: "top left",
+                  width: "111.111%",
+                }}
                 className="rounded-2xl overflow-hidden bg-white shadow"
               >
-                <BrndlyLandingPreview config={config} adminHref="/admin/home" />
+                <BrndlyLandingPreview
+                  config={config}
+                  adminHref="/admin/home"
+                  editable
+                  onConfigChange={(next) => setConfig(next)}
+                />
               </div>
             </div>
           </div>

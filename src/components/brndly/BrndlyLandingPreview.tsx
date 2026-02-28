@@ -10,8 +10,15 @@ import Contact from "./sections/Contact";
 import Footer from "./sections/Footer";
 
 import type { BrndlyLeadPayload } from "./types";
-import type { HomeConfig, HeroMetric } from "./admin/homeConfig";
+import type { HomeConfig } from "./admin/homeConfig";
 import { DEFAULT_HOME_CONFIG, mergeHomeConfig } from "./admin/homeConfig";
+
+type HeroMetric = {
+  id: string;
+  label: string;
+  value: string;
+  note: string;
+};
 
 type Props = {
   adminHref?: string;
@@ -33,7 +40,10 @@ export default function BrndlyLandingPreview({
 
   function patchHero(partial: Partial<HomeConfig["hero"]>) {
     if (!onConfigChange) return;
-    onConfigChange({ ...cfg, hero: { ...cfg.hero, ...partial } });
+    onConfigChange({
+      ...cfg,
+      hero: { ...cfg.hero, ...partial },
+    });
   }
 
   function reorder<T>(arr: T[], from: number, to: number): T[] {
@@ -53,14 +63,14 @@ export default function BrndlyLandingPreview({
             {...cfg.hero}
             editable={editable}
             onReorderMetrics={(from: number, to: number) => {
-              const next = reorder<HeroMetric>(cfg.hero.metrics ?? [], from, to);
-              patchHero({ metrics: next });
+              const current = (cfg.hero.metrics ?? []) as HeroMetric[];
+              const next = reorder<HeroMetric>(current, from, to);
+              patchHero({ metrics: next as any });
             }}
             onUpdateMetric={(id: string, partial: Partial<HeroMetric>) => {
-              const next = (cfg.hero.metrics ?? []).map((m) =>
-                m.id === id ? { ...m, ...partial } : m
-              );
-              patchHero({ metrics: next });
+              const current = (cfg.hero.metrics ?? []) as HeroMetric[];
+              const next = current.map((m) => (m.id === id ? { ...m, ...partial } : m));
+              patchHero({ metrics: next as any });
             }}
             onUpdateChips={(chips: string[]) => patchHero({ chips })}
           />
