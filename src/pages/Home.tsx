@@ -28,7 +28,6 @@ export default function HomePage() {
     }
 
     load();
-
     return () => {
       alive = false;
     };
