@@ -8,7 +8,6 @@ type Props = {
   ctaPrimary?: string;
   ctaSecondary?: string;
 
-  // NEW
   reelVideoUrl?: string;
   reelThumbUrl?: string;
 };
@@ -84,35 +83,44 @@ export default function Hero({
               </span>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 text-xs">
-              <MiniMetric label="Views" value="1.9M" note="avg. per campaign" />
-              <MiniMetric label="Clips" value="120+" note="monthly assets" />
-              <MiniMetric label="Time" value="7d" note="average delivery" />
+            {/* PORTRAIT VIDEO LAYOUT:
+                - Mobile: video on top, metrics below
+                - Desktop: video left, metrics right
+             */}
+            <div className="grid gap-3 md:grid-cols-[1fr_160px] items-stretch">
+              {/* Video */}
+              <div className="rounded-2xl border border-slate-200 overflow-hidden bg-slate-900">
+                <div className="w-full aspect-[9/16]">
+                  {reelVideoUrl ? (
+                    <video
+                      src={reelVideoUrl}
+                      controls
+                      playsInline
+                      preload="metadata"
+                      poster={reelThumbUrl || undefined}
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-[10px] text-slate-200 uppercase tracking-[0.25em]">
+                      Video reel preview
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Right side: 3 cards */}
+              <div className="grid grid-rows-3 gap-3">
+                <MiniMetric label="Views" value="1.9M" note="avg. per campaign" />
+                <MiniMetric label="Clips" value="120+" note="monthly assets" />
+                <MiniMetric label="Time" value="7d" note="average delivery" />
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="flex-1 h-24 rounded-2xl border border-slate-200 overflow-hidden bg-purple-900/90">
-                {reelVideoUrl ? (
-                  <video
-                    src={reelVideoUrl}
-                    controls
-                    playsInline
-                    preload="metadata"
-                    poster={reelThumbUrl || undefined}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[10px] text-slate-200 uppercase tracking-[0.25em]">
-                    Video reel preview
-                  </div>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-2 w-28 text-[10px]">
-                <Chip>TikTok • 840k</Chip>
-                <Chip>Reels • 420k</Chip>
-                <Chip>Shorts • 260k</Chip>
-              </div>
+            {/* Chips row */}
+            <div className="grid grid-cols-3 gap-2 text-[10px]">
+              <Chip>TikTok • 840k</Chip>
+              <Chip>Reels • 420k</Chip>
+              <Chip>Shorts • 260k</Chip>
             </div>
           </div>
 
@@ -155,7 +163,7 @@ function MiniMetric({
 
 function Chip({ children }: { children: React.ReactNode }) {
   return (
-    <div className="h-10 rounded-xl border border-slate-200 flex items-center justify-center">
+    <div className="h-10 rounded-xl border border-slate-200 flex items-center justify-center bg-white/90 shadow-sm">
       {children}
     </div>
   );
