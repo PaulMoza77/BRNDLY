@@ -3,23 +3,24 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Home from "./pages/Home";
 
+// ✅ IMPORTANT: importă din components, NU din pages
 import AdminLayout from "./components/brndly/admin/AdminLayout";
-import AdminHomeEdit from "./components/brndly/admin/AdminHomeEdit";
+import AdminHomeEditPage from "./components/brndly/admin/AdminHomeEdit";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* ✅ PUBLIC */}
+        {/* SITE */}
         <Route path="/" element={<Home />} />
 
-        {/* ✅ ADMIN */}
+        {/* ADMIN */}
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="/admin/home" replace />} />
-          <Route path="home" element={<AdminHomeEdit />} />
+          <Route path="home" element={<AdminHomeEditPage />} />
         </Route>
 
-        {/* ✅ fallback -> HOME (NU admin!) */}
+        {/* FALLBACK */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

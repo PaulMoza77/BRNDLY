@@ -1,10 +1,11 @@
+// src/components/brndly/sections/Navbar.tsx
 import { Link } from "react-router-dom";
 
 type Props = {
-  adminHref: string;
+  adminHref?: string;
 };
 
-export default function Navbar({ adminHref }: Props) {
+export default function Navbar({ adminHref = "/admin/home" }: Props) {
   return (
     <header className="border-b border-slate-200 sticky top-0 bg-white/80 backdrop-blur z-20">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
