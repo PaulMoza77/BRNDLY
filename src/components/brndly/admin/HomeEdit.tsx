@@ -7,6 +7,7 @@ import type {
   BrandCardItem,
   PortfolioItem,
   PortfolioPlatform,
+  AboutCard,
 } from "./homeConfig";
 import BrndlyLandingPreview from "@/components/brndly/BrndlyLandingPreview";
 import { Plus, Trash2, ChevronDown } from "lucide-react";
@@ -138,6 +139,34 @@ export default function HomeEdit() {
 
   function setHero(partial: Partial<HomeConfig["hero"]>) {
     setConfig({ ...config, hero: { ...config.hero, ...partial } });
+  }
+
+  function setAbout(partial: Partial<HomeConfig["about"]>) {
+    setConfig({ ...config, about: { ...config.about, ...partial } });
+  }
+
+  function updateAboutBullet(index: number, value: string) {
+    const next = (config.about.bullets ?? []).map((b, i) =>
+      i === index ? value : b
+    );
+    setAbout({ bullets: next });
+  }
+
+  function addAboutBullet() {
+    const next = [...(config.about.bullets ?? []), "New bullet..."];
+    setAbout({ bullets: next });
+  }
+
+  function removeAboutBullet(index: number) {
+    const next = (config.about.bullets ?? []).filter((_, i) => i !== index);
+    setAbout({ bullets: next });
+  }
+
+  function updateAboutCard(index: number, partial: Partial<AboutCard>) {
+    const next = (config.about.cards ?? []).map((c, i) =>
+      i === index ? { ...c, ...partial } : c
+    );
+    setAbout({ cards: next });
   }
 
   function setBrands(partial: Partial<HomeConfig["brands"]>) {
@@ -381,7 +410,6 @@ export default function HomeEdit() {
                 />
               </Field>
 
-              {/* ===== NEW: HERO METRICS EDITOR ===== */}
               <Field label="Hero metrics (edit + reorder)">
                 <div className="grid gap-3">
                   {(config.hero.metrics || []).map((m, idx) => (
@@ -440,7 +468,6 @@ export default function HomeEdit() {
                 </div>
               </Field>
 
-              {/* ===== NEW: HERO CHIPS EDITOR ===== */}
               <Field label="Hero chips (3 items)">
                 <div className="grid gap-2">
                   {(config.hero.chips || ["", "", ""]).slice(0, 3).map((c, i) => (
@@ -460,6 +487,114 @@ export default function HomeEdit() {
                   ))}
                 </div>
               </Field>
+            </div>
+          </Panel>
+
+          {/* ✅ NEW: ABOUT PANEL */}
+          <Panel
+            title="About"
+            subtitle="Editează secțiunea What we actually do."
+          >
+            <div className="grid gap-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Kicker">
+                  <Input
+                    value={config.about.kicker}
+                    onChange={(e) => setAbout({ kicker: e.target.value })}
+                  />
+                </Field>
+
+                <Field label="Title">
+                  <Input
+                    value={config.about.title}
+                    onChange={(e) => setAbout({ title: e.target.value })}
+                  />
+                </Field>
+              </div>
+
+              <Field label="Subtitle">
+                <Textarea
+                  value={config.about.subtitle}
+                  onChange={(e) => setAbout({ subtitle: e.target.value })}
+                />
+              </Field>
+
+              <div className="flex items-center justify-between pt-2">
+                <div className="text-sm font-semibold">Bullets</div>
+                <button
+                  type="button"
+                  onClick={addAboutBullet}
+                  className="h-9 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" /> Add bullet
+                </button>
+              </div>
+
+              <div className="grid gap-2">
+                {config.about.bullets.map((b, idx) => (
+                  <div key={idx} className="flex items-start gap-2">
+                    <Input
+                      value={b}
+                      onChange={(e) =>
+                        updateAboutBullet(idx, e.target.value)
+                      }
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeAboutBullet(idx)}
+                      className="h-10 px-3 rounded-xl border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 text-xs flex items-center gap-2"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-2">
+                <div className="text-sm font-semibold mb-2">Cards</div>
+
+                <div className="grid gap-3">
+                  {config.about.cards.map((c, idx) => (
+                    <div
+                      key={c.id ?? String(idx)}
+                      className="rounded-2xl border border-slate-200 p-4 grid gap-3"
+                    >
+                      <div className="text-sm font-medium">
+                        Card #{idx + 1}
+                      </div>
+
+                      <Field label="Overline (ex: 01 · STRATEGY)">
+                        <Input
+                          value={c.overline}
+                          onChange={(e) =>
+                            updateAboutCard(idx, { overline: e.target.value })
+                          }
+                        />
+                      </Field>
+
+                      <Field label="Title">
+                        <Input
+                          value={c.title}
+                          onChange={(e) =>
+                            updateAboutCard(idx, { title: e.target.value })
+                          }
+                        />
+                      </Field>
+
+                      <Field label="Description">
+                        <Textarea
+                          value={c.description}
+                          onChange={(e) =>
+                            updateAboutCard(idx, {
+                              description: e.target.value,
+                            })
+                          }
+                        />
+                      </Field>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </Panel>
 
@@ -559,9 +694,7 @@ export default function HomeEdit() {
                 <Field label="Kicker">
                   <Input
                     value={config.portfolio.kicker}
-                    onChange={(e) =>
-                      setPortfolio({ kicker: e.target.value })
-                    }
+                    onChange={(e) => setPortfolio({ kicker: e.target.value })}
                   />
                 </Field>
                 <Field label="Title">
@@ -612,9 +745,7 @@ export default function HomeEdit() {
                         <Input
                           value={it.title}
                           onChange={(e) =>
-                            updatePortfolioItem(idx, {
-                              title: e.target.value,
-                            })
+                            updatePortfolioItem(idx, { title: e.target.value })
                           }
                         />
                       </Field>
@@ -642,9 +773,7 @@ export default function HomeEdit() {
                         <Input
                           value={it.thumbUrl}
                           onChange={(e) =>
-                            updatePortfolioItem(idx, {
-                              thumbUrl: e.target.value,
-                            })
+                            updatePortfolioItem(idx, { thumbUrl: e.target.value })
                           }
                         />
                       </Field>
@@ -653,9 +782,7 @@ export default function HomeEdit() {
                         <Input
                           value={it.videoUrl}
                           onChange={(e) =>
-                            updatePortfolioItem(idx, {
-                              videoUrl: e.target.value,
-                            })
+                            updatePortfolioItem(idx, { videoUrl: e.target.value })
                           }
                         />
                       </Field>
@@ -666,9 +793,7 @@ export default function HomeEdit() {
                         <Input
                           value={it.viewsText}
                           onChange={(e) =>
-                            updatePortfolioItem(idx, {
-                              viewsText: e.target.value,
-                            })
+                            updatePortfolioItem(idx, { viewsText: e.target.value })
                           }
                         />
                       </Field>

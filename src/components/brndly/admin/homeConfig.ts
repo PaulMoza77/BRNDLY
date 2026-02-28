@@ -28,10 +28,17 @@ export type PortfolioItem = {
 };
 
 export type HeroMetric = {
-  id: string; // stable key for reorder
+  id: string;
   label: string;
   value: string;
   note: string;
+};
+
+export type AboutCard = {
+  id: string;
+  overline: string;
+  title: string;
+  description: string;
 };
 
 export type HomeConfig = {
@@ -50,6 +57,15 @@ export type HomeConfig = {
 
     metrics: HeroMetric[];
     chips: string[];
+  };
+
+  // ✅ NEW: About editable
+  about: {
+    kicker: string;
+    title: string;
+    subtitle: string;
+    bullets: string[];
+    cards: AboutCard[];
   };
 
   brands: {
@@ -95,8 +111,50 @@ export const DEFAULT_HOME_CONFIG: HomeConfig = {
       { id: "clips", label: "Clips", value: "120+", note: "monthly assets" },
       { id: "time", label: "Time", value: "7d", note: "average delivery" },
     ],
-
     chips: ["TikTok • 840k", "Reels • 420k", "Shorts • 260k"],
+  },
+
+  about: {
+    kicker: "What we actually do",
+    title: "We build brands, not just posts.",
+    subtitle:
+      "BRNDLY. covers the full journey: strategy, scripting, on-site production, editing, publishing and day–to–day social media management. No templates, no stock footage — just original content that looks and feels like your brand.",
+    bullets: [
+      "Brand & content strategy tailored to your voice and audience.",
+      "On-location filming with professional cameras, lenses and audio.",
+      "Editing for all major platforms: TikTok, Reels, Shorts, YouTube.",
+      "Dedicated social media manager and monthly performance reviews.",
+    ],
+    cards: [
+      {
+        id: "strategy",
+        overline: "01 · STRATEGY",
+        title: "Creative direction & brand positioning",
+        description:
+          "Deep dive workshop, content pillars and storyline design for the next 90 days.",
+      },
+      {
+        id: "production",
+        overline: "02 · PRODUCTION",
+        title: "Professional shoot days",
+        description:
+          "Full crew on site: director, camera operator, audio, lights — anywhere we operate.",
+      },
+      {
+        id: "management",
+        overline: "03 · MANAGEMENT",
+        title: "Daily posting & community",
+        description:
+          "Calendar, captions, posting times and comment moderation handled for you.",
+      },
+      {
+        id: "brand",
+        overline: "04 · BRAND",
+        title: "Long–term brand building",
+        description:
+          "We focus on awareness, trust and storytelling — the metrics that outlive any trend.",
+      },
+    ],
   },
 
   brands: {
@@ -162,8 +220,7 @@ export const DEFAULT_HOME_CONFIG: HomeConfig = {
   },
 };
 
-// bump when schema changes
-export const HOME_CONFIG_CACHE_KEY = "brndly_home_config_cache_v4";
+export const HOME_CONFIG_CACHE_KEY = "brndly_home_config_cache_v5";
 
 export function safeParse<T>(s: string | null): T | null {
   if (!s) return null;
@@ -180,7 +237,6 @@ function isNonEmptyArray<T>(v: unknown): v is T[] {
 
 function normalizeMetrics(v: unknown): HeroMetric[] | null {
   if (!isNonEmptyArray<any>(v)) return null;
-
   const fallbackIds = ["views", "clips", "time"];
   return v
     .map((m, i) => ({
@@ -197,7 +253,26 @@ function normalizeChips(v: unknown): string[] | null {
   return v.map((x) => String(x ?? "")).slice(0, 3);
 }
 
-export function mergeHomeConfig(raw: Partial<HomeConfig> | null | undefined): HomeConfig {
+function normalizeAboutBullets(v: unknown): string[] | null {
+  if (!isNonEmptyArray<any>(v)) return null;
+  return v.map((x) => String(x ?? "")).filter(Boolean).slice(0, 8);
+}
+
+function normalizeAboutCards(v: unknown): AboutCard[] | null {
+  if (!isNonEmptyArray<any>(v)) return null;
+  return v
+    .map((c, i) => ({
+      id: String(c?.id ?? `card${i}`),
+      overline: String(c?.overline ?? ""),
+      title: String(c?.title ?? ""),
+      description: String(c?.description ?? ""),
+    }))
+    .slice(0, 8);
+}
+
+export function mergeHomeConfig(
+  raw: Partial<HomeConfig> | null | undefined
+): HomeConfig {
   if (!raw) return DEFAULT_HOME_CONFIG;
 
   const merged: HomeConfig = {
@@ -212,8 +287,23 @@ export function mergeHomeConfig(raw: Partial<HomeConfig> | null | undefined): Ho
     hero: {
       ...DEFAULT_HOME_CONFIG.hero,
       ...(raw.hero ?? {}),
-      metrics: normalizeMetrics((raw.hero as any)?.metrics) ?? DEFAULT_HOME_CONFIG.hero.metrics,
-      chips: normalizeChips((raw.hero as any)?.chips) ?? DEFAULT_HOME_CONFIG.hero.chips,
+      metrics:
+        normalizeMetrics((raw.hero as any)?.metrics) ??
+        DEFAULT_HOME_CONFIG.hero.metrics,
+      chips:
+        normalizeChips((raw.hero as any)?.chips) ??
+        DEFAULT_HOME_CONFIG.hero.chips,
+    },
+
+    about: {
+      ...DEFAULT_HOME_CONFIG.about,
+      ...(raw.about ?? {}),
+      bullets:
+        normalizeAboutBullets((raw.about as any)?.bullets) ??
+        DEFAULT_HOME_CONFIG.about.bullets,
+      cards:
+        normalizeAboutCards((raw.about as any)?.cards) ??
+        DEFAULT_HOME_CONFIG.about.cards,
     },
 
     brands: {
@@ -253,7 +343,9 @@ export function mergeHomeConfig(raw: Partial<HomeConfig> | null | undefined): Ho
 }
 
 export function loadCachedHomeConfig(): HomeConfig {
-  const raw = safeParse<HomeConfig>(localStorage.getItem(HOME_CONFIG_CACHE_KEY));
+  const raw = safeParse<HomeConfig>(
+    localStorage.getItem(HOME_CONFIG_CACHE_KEY)
+  );
   return mergeHomeConfig(raw ?? null);
 }
 

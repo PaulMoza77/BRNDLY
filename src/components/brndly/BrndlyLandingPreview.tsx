@@ -69,14 +69,24 @@ export default function BrndlyLandingPreview({
             }}
             onUpdateMetric={(id: string, partial: Partial<HeroMetric>) => {
               const current = (cfg.hero.metrics ?? []) as HeroMetric[];
-              const next = current.map((m) => (m.id === id ? { ...m, ...partial } : m));
+              const next = current.map((m) =>
+                m.id === id ? { ...m, ...partial } : m
+              );
               patchHero({ metrics: next as any });
             }}
             onUpdateChips={(chips: string[]) => patchHero({ chips })}
           />
         )}
 
-        {cfg.sections.about && <About />}
+        {cfg.sections.about && (
+          <About
+            kicker={cfg.about.kicker}
+            title={cfg.about.title}
+            subtitle={cfg.about.subtitle}
+            bullets={cfg.about.bullets}
+            cards={cfg.about.cards}
+          />
+        )}
 
         {cfg.sections.brands && (
           <Brands

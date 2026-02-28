@@ -1,64 +1,89 @@
+// src/components/brndly/sections/About.tsx
 
-export default function About() {
+type AboutCard = {
+  id: string;
+  overline: string;
+  title: string;
+  description: string;
+};
+
+type Props = {
+  kicker?: string;
+  title?: string;
+  subtitle?: string;
+  bullets?: string[];
+  cards?: AboutCard[];
+};
+
+export default function About({
+  kicker = "What we actually do",
+  title = "We build brands, not just posts.",
+  subtitle =
+    "BRNDLY. covers the full journey: strategy, scripting, on-site production, editing, publishing and day–to–day social media management. No templates, no stock footage — just original content that looks and feels like your brand.",
+  bullets = [],
+  cards = [],
+}: Props) {
   return (
     <section id="about" className="border-b border-slate-200">
-      <div className="max-w-6xl mx-auto px-4 py-12 md:py-16 grid md:grid-cols-[1.1fr,1.3fr] gap-10 items-start">
-        <div className="space-y-4">
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-            What we actually do
-          </p>
+      <div className="mx-auto max-w-6xl px-4 py-12 md:py-20">
+        <p className="mb-4 text-xs uppercase tracking-[0.3em] text-slate-500">
+          {kicker}
+        </p>
 
-          <h2 className="text-xl md:text-2xl font-semibold">
-            We build brands, not just posts.
-          </h2>
+        <div className="grid items-start gap-10 lg:grid-cols-[1.2fr_1fr]">
+          <div>
+            <h2 className="mb-4 text-2xl font-semibold leading-tight md:text-3xl">
+              {title}
+            </h2>
 
-          <p className="text-sm text-slate-600">
-            BRNDLY. covers the full journey: strategy, scripting, on-site production,
-            editing, publishing and day–to–day social media management. No templates,
-            no stock footage – just original content that looks and feels like your brand.
-          </p>
+            <p className="mb-5 text-sm leading-relaxed text-slate-600 md:text-base">
+              {subtitle}
+            </p>
 
-          <ul className="text-sm text-slate-600 space-y-2">
-            <li>• Brand & content strategy tailored to your voice and audience.</li>
-            <li>• On-location filming with professional cameras, lenses and audio.</li>
-            <li>• Editing for all major platforms: TikTok, Reels, Shorts, YouTube.</li>
-            <li>• Dedicated social media manager and monthly performance reviews.</li>
-          </ul>
-        </div>
+            {bullets.length > 0 && (
+              <ul className="space-y-2 text-sm text-slate-700">
+                {bullets.map((b, i) => (
+                  <li key={i} className="flex gap-2">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-purple-900/70" />
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
-        <div className="grid sm:grid-cols-2 gap-4 text-xs">
-          <StepCard
-            k="01 • Strategy"
-            title="Creative direction & brand positioning"
-            desc="Deep dive workshop, content pillars and storyline design for the next 90 days."
-          />
-          <StepCard
-            k="02 • Production"
-            title="Professional shoot days"
-            desc="Full crew on site: director, camera operator, audio, lights – anywhere we operate."
-          />
-          <StepCard
-            k="03 • Management"
-            title="Daily posting & community"
-            desc="Calendar, captions, posting times and comment moderation handled for you."
-          />
-          <StepCard
-            k="04 • Brand"
-            title="Long–term brand building"
-            desc="We focus on awareness, trust and storytelling – the metrics that outlive any trend."
-          />
+          <div className="grid gap-4 sm:grid-cols-2">
+            {cards.map((c) => (
+              <AboutCardUI
+                key={c.id}
+                overline={c.overline}
+                title={c.title}
+                description={c.description}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-function StepCard({ k, title, desc }: { k: string; title: string; desc: string }) {
+function AboutCardUI(props: {
+  overline: string;
+  title: string;
+  description: string;
+}) {
+  const { overline, title, description } = props;
+
   return (
-    <div className="border border-slate-200 rounded-2xl bg-white/90 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-transform transition-shadow duration-300 p-4 flex flex-col gap-2">
-      <span className="uppercase tracking-[0.25em] text-[11px] text-slate-500">{k}</span>
-      <p className="font-medium text-sm">{title}</p>
-      <p className="text-slate-600 text-xs">{desc}</p>
+    <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+      <div className="mb-2 text-[10px] uppercase tracking-[0.25em] text-slate-500">
+        {overline}
+      </div>
+      <div className="mb-2 text-sm font-semibold">{title}</div>
+      <div className="text-sm leading-relaxed text-slate-600">
+        {description}
+      </div>
     </div>
   );
 }
