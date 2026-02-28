@@ -7,6 +7,10 @@ type Props = {
   subtitle?: string;
   ctaPrimary?: string;
   ctaSecondary?: string;
+
+  // NEW
+  reelVideoUrl?: string;
+  reelThumbUrl?: string;
 };
 
 export default function Hero({
@@ -16,6 +20,8 @@ export default function Hero({
   subtitle = "BRNDLY. is your end–to–end social media team. We plan, film and manage your content with a clear promise: a minimum of 1.5M organic views for your brand.",
   ctaPrimary = "Book a discovery call",
   ctaSecondary = "View popular videos ↓",
+  reelVideoUrl = "",
+  reelThumbUrl = "",
 }: Props) {
   return (
     <section className="border-b border-slate-200">
@@ -85,8 +91,21 @@ export default function Hero({
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="flex-1 h-24 rounded-2xl border border-slate-200 bg-purple-900/90 flex items-center justify-center text-[10px] text-slate-200 uppercase tracking-[0.25em]">
-                Video reel preview
+              <div className="flex-1 h-24 rounded-2xl border border-slate-200 overflow-hidden bg-purple-900/90">
+                {reelVideoUrl ? (
+                  <video
+                    src={reelVideoUrl}
+                    controls
+                    playsInline
+                    preload="metadata"
+                    poster={reelThumbUrl || undefined}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[10px] text-slate-200 uppercase tracking-[0.25em]">
+                    Video reel preview
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-col gap-2 w-28 text-[10px]">

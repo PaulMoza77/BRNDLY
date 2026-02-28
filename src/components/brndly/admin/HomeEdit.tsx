@@ -1,9 +1,16 @@
 // src/components/brndly/admin/HomeEdit.tsx
 import React from "react";
 import { useHomeConfig } from "./useHomeConfig";
-import type { HomeSectionKey, HomeConfig, BrandCardItem, PortfolioItem, PortfolioPlatform } from "./homeConfig";
+import type {
+  HomeSectionKey,
+  HomeConfig,
+  BrandCardItem,
+  PortfolioItem,
+  PortfolioPlatform,
+} from "./homeConfig";
 import BrndlyLandingPreview from "@/components/brndly/BrndlyLandingPreview";
 import { Plus, Trash2, ChevronDown } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -39,7 +46,9 @@ function Panel(props: {
           <div className="text-sm font-semibold">{title}</div>
           {subtitle && <div className="text-xs text-slate-500 mt-1">{subtitle}</div>}
         </div>
-        <ChevronDown className={cn("h-4 w-4 text-slate-500 transition-transform", open && "rotate-180")} />
+        <ChevronDown
+          className={cn("h-4 w-4 text-slate-500 transition-transform", open && "rotate-180")}
+        />
       </button>
 
       {open && <div className="p-5 border-t border-slate-200">{children}</div>}
@@ -167,6 +176,21 @@ export default function HomeEdit() {
     setPortfolio({ items: next });
   }
 
+  async function uploadHeroReelVideo(file: File) {
+    const ext = file.name.split(".").pop()?.toLowerCase() || "mp4";
+    const safeExt = ext.replace(/[^a-z0-9]/g, "") || "mp4";
+    const path = `home/hero/reel-${Date.now()}.${safeExt}`;
+
+    const { error: upErr } = await supabase.storage
+      .from("brndly")
+      .upload(path, file, { upsert: true, contentType: file.type });
+
+    if (upErr) throw upErr;
+
+    const { data } = supabase.storage.from("brndly").getPublicUrl(path);
+    return data.publicUrl;
+  }
+
   async function handleSave() {
     await save();
   }
@@ -230,7 +254,7 @@ export default function HomeEdit() {
             </div>
           </Panel>
 
-          <Panel title="Hero" subtitle="Editează textele din Hero." defaultOpen>
+          <Panel title="Hero" subtitle="Editează textele + video din Hero." defaultOpen>
             <div className="grid gap-3">
               <Field label="Kicker">
                 <Input value={config.hero.kicker} onChange={(e) => setHero({ kicker: e.target.value })} />
@@ -252,10 +276,7 @@ export default function HomeEdit() {
               </div>
 
               <Field label="Subtitle">
-                <Textarea
-                  value={config.hero.subtitle}
-                  onChange={(e) => setHero({ subtitle: e.target.value })}
-                />
+                <Textarea value={config.hero.subtitle} onChange={(e) => setHero({ subtitle: e.target.value })} />
               </Field>
 
               <div className="grid sm:grid-cols-2 gap-3">
@@ -272,6 +293,56 @@ export default function HomeEdit() {
                   />
                 </Field>
               </div>
+
+              <Field label="Hero reel video (upload from PC)">
+                <div className="grid gap-2">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={async (e) => {
+                        const f = e.target.files?.[0];
+                        if (!f) return;
+
+                        try {
+                          const url = await uploadHeroReelVideo(f);
+                          setHero({ reelVideoUrl: url });
+                        } catch (err: any) {
+                          console.error(err);
+                          alert(err?.message ?? "Upload failed");
+                        } finally {
+                          e.currentTarget.value = "";
+                        }
+                      }}
+                      className="block w-full text-sm"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => setHero({ reelVideoUrl: "" })}
+                      className="h-10 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs"
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  {config.hero.reelVideoUrl ? (
+                    <div className="text-xs text-slate-500 break-all">
+                      Current: {config.hero.reelVideoUrl}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-slate-400">No video uploaded.</div>
+                  )}
+                </div>
+              </Field>
+
+              <Field label="Hero reel thumb (poster URL - optional)">
+                <Input
+                  value={config.hero.reelThumbUrl || ""}
+                  onChange={(e) => setHero({ reelThumbUrl: e.target.value })}
+                  placeholder="https://... (optional)"
+                />
+              </Field>
             </div>
           </Panel>
 
@@ -336,24 +407,15 @@ export default function HomeEdit() {
             <div className="grid gap-3">
               <div className="grid sm:grid-cols-2 gap-3">
                 <Field label="Kicker">
-                  <Input
-                    value={config.portfolio.kicker}
-                    onChange={(e) => setPortfolio({ kicker: e.target.value })}
-                  />
+                  <Input value={config.portfolio.kicker} onChange={(e) => setPortfolio({ kicker: e.target.value })} />
                 </Field>
                 <Field label="Title">
-                  <Input
-                    value={config.portfolio.title}
-                    onChange={(e) => setPortfolio({ title: e.target.value })}
-                  />
+                  <Input value={config.portfolio.title} onChange={(e) => setPortfolio({ title: e.target.value })} />
                 </Field>
               </div>
 
               <Field label="CTA text (button)">
-                <Input
-                  value={config.portfolio.ctaText}
-                  onChange={(e) => setPortfolio({ ctaText: e.target.value })}
-                />
+                <Input value={config.portfolio.ctaText} onChange={(e) => setPortfolio({ ctaText: e.target.value })} />
               </Field>
 
               <div className="flex items-center justify-between">
@@ -390,9 +452,7 @@ export default function HomeEdit() {
                         <select
                           value={it.platform}
                           onChange={(e) =>
-                            updatePortfolioItem(idx, {
-                              platform: e.target.value as PortfolioPlatform,
-                            })
+                            updatePortfolioItem(idx, { platform: e.target.value as PortfolioPlatform })
                           }
                           className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm bg-white"
                         >
@@ -430,9 +490,7 @@ export default function HomeEdit() {
                       <Field label="Engagement text">
                         <Input
                           value={it.engagementText}
-                          onChange={(e) =>
-                            updatePortfolioItem(idx, { engagementText: e.target.value })
-                          }
+                          onChange={(e) => updatePortfolioItem(idx, { engagementText: e.target.value })}
                         />
                       </Field>
                     </div>
@@ -460,11 +518,7 @@ export default function HomeEdit() {
           <div className="h-[calc(100vh-220px)] overflow-auto bg-slate-50">
             <div className="p-4">
               <div
-                style={{
-                  transform: "scale(0.9)",
-                  transformOrigin: "top left",
-                  width: "111.111%",
-                }}
+                style={{ transform: "scale(0.9)", transformOrigin: "top left", width: "111.111%" }}
                 className="rounded-2xl overflow-hidden bg-white shadow"
               >
                 <BrndlyLandingPreview config={config} adminHref="/admin/home" />

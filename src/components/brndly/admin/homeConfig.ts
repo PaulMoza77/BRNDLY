@@ -37,6 +37,10 @@ export type HomeConfig = {
     subtitle: string;
     ctaPrimary: string;
     ctaSecondary: string;
+
+    // NEW: video reel in Hero
+    reelVideoUrl: string; // public URL (mp4/webm)
+    reelThumbUrl: string; // optional poster image
   };
 
   brands: {
@@ -73,6 +77,10 @@ export const DEFAULT_HOME_CONFIG: HomeConfig = {
       "BRNDLY. is your end–to–end social media team. We plan, film and manage your content with a clear promise: a minimum of 1.5M organic views for your brand.",
     ctaPrimary: "Book a discovery call",
     ctaSecondary: "View popular videos ↓",
+
+    // NEW defaults
+    reelVideoUrl: "",
+    reelThumbUrl: "",
   },
 
   brands: {
@@ -138,7 +146,8 @@ export const DEFAULT_HOME_CONFIG: HomeConfig = {
   },
 };
 
-export const HOME_CONFIG_CACHE_KEY = "brndly_home_config_cache_v2";
+// IMPORTANT: bump cache key when schema changes
+export const HOME_CONFIG_CACHE_KEY = "brndly_home_config_cache_v3";
 
 export function safeParse<T>(s: string | null): T | null {
   if (!s) return null;
@@ -153,7 +162,9 @@ function isNonEmptyArray<T>(v: unknown): v is T[] {
   return Array.isArray(v) && v.length > 0;
 }
 
-export function mergeHomeConfig(raw: Partial<HomeConfig> | null | undefined): HomeConfig {
+export function mergeHomeConfig(
+  raw: Partial<HomeConfig> | null | undefined
+): HomeConfig {
   if (!raw) return DEFAULT_HOME_CONFIG;
 
   const merged: HomeConfig = {
@@ -207,7 +218,9 @@ export function mergeHomeConfig(raw: Partial<HomeConfig> | null | undefined): Ho
 }
 
 export function loadCachedHomeConfig(): HomeConfig {
-  const raw = safeParse<HomeConfig>(localStorage.getItem(HOME_CONFIG_CACHE_KEY));
+  const raw = safeParse<HomeConfig>(
+    localStorage.getItem(HOME_CONFIG_CACHE_KEY)
+  );
   return mergeHomeConfig(raw ?? null);
 }
 
