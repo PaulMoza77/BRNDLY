@@ -18,13 +18,20 @@ export type BrandCardItem = {
 export type PortfolioPlatform = "tiktok" | "reels" | "youtube" | "other";
 
 export type PortfolioItem = {
-  title: string; // ex: "Video case study 1"
-  platform: PortfolioPlatform; // reels / tiktok etc
-  viewsText: string; // ex: "730k views"
-  engagementText: string; // ex: "Saved 12k • Sent 4k"
-  description: string; // text mic sub stats
-  thumbUrl: string; // imagine / placeholder
-  videoUrl: string; // link (YT/TikTok/Reels/MP4)
+  title: string;
+  platform: PortfolioPlatform;
+  viewsText: string;
+  engagementText: string;
+  description: string;
+  thumbUrl: string;
+  videoUrl: string;
+};
+
+export type HeroMetric = {
+  id: string; // stable key for reorder
+  label: string;
+  value: string;
+  note: string;
 };
 
 export type HomeConfig = {
@@ -38,9 +45,11 @@ export type HomeConfig = {
     ctaPrimary: string;
     ctaSecondary: string;
 
-    // NEW: video reel in Hero
-    reelVideoUrl: string; // public URL (mp4/webm)
-    reelThumbUrl: string; // optional poster image
+    reelVideoUrl: string;
+    reelThumbUrl: string;
+
+    metrics: HeroMetric[];
+    chips: string[];
   };
 
   brands: {
@@ -78,9 +87,15 @@ export const DEFAULT_HOME_CONFIG: HomeConfig = {
     ctaPrimary: "Book a discovery call",
     ctaSecondary: "View popular videos ↓",
 
-    // NEW defaults
     reelVideoUrl: "",
     reelThumbUrl: "",
+
+    metrics: [
+      { id: "views", label: "Views", value: "1.9M", note: "avg. per campaign" },
+      { id: "clips", label: "Clips", value: "120+", note: "monthly assets" },
+      { id: "time", label: "Time", value: "7d", note: "average delivery" },
+    ],
+    chips: ["TikTok • 840k", "Reels • 420k", "Shorts • 260k"],
   },
 
   brands: {
@@ -146,8 +161,8 @@ export const DEFAULT_HOME_CONFIG: HomeConfig = {
   },
 };
 
-// IMPORTANT: bump cache key when schema changes
-export const HOME_CONFIG_CACHE_KEY = "brndly_home_config_cache_v3";
+// bump when schema changes
+export const HOME_CONFIG_CACHE_KEY = "brndly_home_config_cache_v4";
 
 export function safeParse<T>(s: string | null): T | null {
   if (!s) return null;
@@ -160,6 +175,21 @@ export function safeParse<T>(s: string | null): T | null {
 
 function isNonEmptyArray<T>(v: unknown): v is T[] {
   return Array.isArray(v) && v.length > 0;
+}
+
+function normalizeMetrics(v: unknown): HeroMetric[] | null {
+  if (!isNonEmptyArray<any>(v)) return null;
+  return v.map((m, i) => ({
+    id: String(m?.id ?? `m${i}`),
+    label: String(m?.label ?? ""),
+    value: String(m?.value ?? ""),
+    note: String(m?.note ?? ""),
+  }));
+}
+
+function normalizeChips(v: unknown): string[] | null {
+  if (!isNonEmptyArray<any>(v)) return null;
+  return v.map((x) => String(x ?? ""));
 }
 
 export function mergeHomeConfig(
@@ -179,6 +209,12 @@ export function mergeHomeConfig(
     hero: {
       ...DEFAULT_HOME_CONFIG.hero,
       ...(raw.hero ?? {}),
+      metrics:
+        normalizeMetrics((raw.hero as any)?.metrics) ??
+        DEFAULT_HOME_CONFIG.hero.metrics,
+      chips:
+        normalizeChips((raw.hero as any)?.chips) ??
+        DEFAULT_HOME_CONFIG.hero.chips,
     },
 
     brands: {

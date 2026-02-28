@@ -1,5 +1,12 @@
 import React from "react";
 
+type HeroMetric = {
+  id: string;
+  label: string;
+  value: string;
+  note: string;
+};
+
 type Props = {
   kicker?: string;
   titleLine1?: string;
@@ -10,6 +17,16 @@ type Props = {
 
   reelVideoUrl?: string;
   reelThumbUrl?: string;
+
+  // NEW
+  metrics?: HeroMetric[];
+  chips?: string[];
+
+  // Admin live preview
+  editable?: boolean;
+  onReorderMetrics?: (fromIndex: number, toIndex: number) => void;
+  onUpdateMetric?: (id: string, partial: Partial<HeroMetric>) => void;
+  onUpdateChips?: (chips: string[]) => void;
 };
 
 export default function Hero({
@@ -19,8 +36,19 @@ export default function Hero({
   subtitle = "BRNDLY. is your end–to–end social media team. We plan, film and manage your content with a clear promise: a minimum of 1.5M organic views for your brand.",
   ctaPrimary = "Book a discovery call",
   ctaSecondary = "View popular videos ↓",
+
   reelVideoUrl = "",
   reelThumbUrl = "",
+
+  metrics = [
+    { id: "views", label: "Views", value: "1.9M", note: "avg. per campaign" },
+    { id: "clips", label: "Clips", value: "120+", note: "monthly assets" },
+    { id: "time", label: "Time", value: "7d", note: "average delivery" },
+  ],
+  chips = ["TikTok • 840k", "Reels • 420k", "Shorts • 260k"],
+
+  editable = false,
+  onReorderMetrics,
 }: Props) {
   return (
     <section className="border-b border-slate-200">
@@ -83,10 +111,6 @@ export default function Hero({
               </span>
             </div>
 
-            {/* Layout:
-                - Desktop: [video] [compact stat stack]
-                - Mobile: video then compact stat grid (2 cols, last full)
-             */}
             <div className="grid gap-3 md:grid-cols-[1fr_190px] items-stretch">
               {/* Video */}
               <div className="rounded-2xl border border-slate-200 overflow-hidden bg-slate-950">
@@ -108,22 +132,53 @@ export default function Hero({
                 </div>
               </div>
 
-              {/* Stats */}
+              {/* Metrics (drag & drop in admin preview) */}
               <div className="grid gap-2 md:grid-cols-1 grid-cols-2 auto-rows-fr">
-                <CompactMetric label="Views" value="1.9M" note="avg. per campaign" />
-                <CompactMetric label="Clips" value="120+" note="monthly assets" />
-                <div className="col-span-2 md:col-span-1">
-                  <CompactMetric label="Time" value="7d" note="average delivery" />
-                </div>
+                {metrics.map((m, idx) => {
+                  const isLastOnMobile = idx === 2;
+                  return (
+                    <div
+                      key={m.id}
+                      className={`${isLastOnMobile ? "col-span-2 md:col-span-1" : ""} ${editable ? "cursor-move" : ""}`}
+                      draggable={editable}
+                      onDragStart={(e) => {
+                        if (!editable) return;
+                        e.dataTransfer.setData("text/plain", String(idx));
+                        e.dataTransfer.effectAllowed = "move";
+                      }}
+                      onDragOver={(e) => {
+                        if (!editable) return;
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = "move";
+                      }}
+                      onDrop={(e) => {
+                        if (!editable || !onReorderMetrics) return;
+                        e.preventDefault();
+                        const from = Number(e.dataTransfer.getData("text/plain"));
+                        if (!Number.isFinite(from) || from === idx) return;
+                        onReorderMetrics(from, idx);
+                      }}
+                      title={editable ? "Drag to reorder" : undefined}
+                    >
+                      <CompactMetric label={m.label} value={m.value} note={m.note} />
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Chips row - tighter + uniform */}
+            {/* Chips */}
             <div className="grid grid-cols-3 gap-2 text-[10px]">
-              <Chip>TikTok • 840k</Chip>
-              <Chip>Reels • 420k</Chip>
-              <Chip>Shorts • 260k</Chip>
+              {chips.slice(0, 3).map((c, i) => (
+                <Chip key={i}>{c}</Chip>
+              ))}
             </div>
+
+            {editable && (
+              <div className="text-[11px] text-slate-400">
+                Tip: drag metric cards to reorder (admin preview only)
+              </div>
+            )}
           </div>
 
           <p className="text-[11px] text-slate-500">

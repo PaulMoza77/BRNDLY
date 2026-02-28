@@ -10,28 +10,62 @@ import Contact from "./sections/Contact";
 import Footer from "./sections/Footer";
 
 import type { BrndlyLeadPayload } from "./types";
-import type { HomeConfig } from "./admin/homeConfig";
+import type { HomeConfig, HeroMetric } from "./admin/homeConfig";
 import { DEFAULT_HOME_CONFIG, mergeHomeConfig } from "./admin/homeConfig";
 
 type Props = {
   adminHref?: string;
   onSubmitLead?: (payload: BrndlyLeadPayload) => Promise<void> | void;
   config?: HomeConfig | null;
+
+  editable?: boolean;
+  onConfigChange?: (next: HomeConfig) => void;
 };
 
 export default function BrndlyLandingPreview({
   adminHref = "/admin",
   onSubmitLead,
   config,
+  editable = false,
+  onConfigChange,
 }: Props) {
   const cfg = mergeHomeConfig(config ?? DEFAULT_HOME_CONFIG);
+
+  function patchHero(partial: Partial<HomeConfig["hero"]>) {
+    if (!onConfigChange) return;
+    onConfigChange({ ...cfg, hero: { ...cfg.hero, ...partial } });
+  }
+
+  function reorder<T>(arr: T[], from: number, to: number): T[] {
+    const next = [...arr];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    return next;
+  }
 
   return (
     <div className="min-h-screen bg-white text-slate-900 flex flex-col">
       <Navbar adminHref={adminHref} />
 
       <main className="flex-1">
-        {cfg.sections.hero && <Hero {...cfg.hero} />}
+        {cfg.sections.hero && (
+          <Hero
+            {...cfg.hero}
+            editable={editable}
+            onReorderMetrics={(from: number, to: number) => {
+              const next = reorder<HeroMetric>(cfg.hero.metrics ?? [], from, to);
+              patchHero({ metrics: next });
+            }}
+            onUpdateMetric={(id: string, partial: Partial<HeroMetric>) => {
+              const next = (cfg.hero.metrics ?? []).map((m) =>
+                m.id === id ? { ...m, ...partial } : m
+              );
+              patchHero({ metrics: next });
+            }}
+            onUpdateChips={(chips: string[]) => patchHero({ chips })}
+          />
+        )}
+
         {cfg.sections.about && <About />}
 
         {cfg.sections.brands && (
