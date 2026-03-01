@@ -1,32 +1,83 @@
+// src/components/brndly/sections/Contact.tsx
 import React, { useMemo, useState } from "react";
 import type { BrndlyLeadPayload } from "../types";
 
-type Props = {
+type ContactProps = {
   onSubmitLead?: (payload: BrndlyLeadPayload) => Promise<void> | void;
+
+  kicker?: string;
+  title?: string;
+  subtitle?: string;
+  note?: string;
+  buttonText?: string;
+
+  regions?: BrndlyLeadPayload["region"][];
+  budgets?: BrndlyLeadPayload["budget"][];
 };
 
-const REGIONS: BrndlyLeadPayload["region"][] = [
-  "Dubai / Middle East",
-  "Romania",
-  "Europe (other)",
-  "Other / remote",
-];
+function cn(...classes: Array<string | false | null | undefined>) {
+  return classes.filter(Boolean).join(" ");
+}
 
-const BUDGETS: BrndlyLeadPayload["budget"][] = [
-  "€2,000 – €5,000",
-  "€5,000 – €10,000",
-  "€10,000 – €25,000",
-  "€25,000+",
-];
+export default function Contact({
+  onSubmitLead,
 
-export default function Contact({ onSubmitLead }: Props) {
+  kicker = "Contact",
+  title = "Ready for 1.5M organic views?",
+  subtitle =
+    "Share a few details and our team will get back with a clear content plan, estimated timelines and a price–on–request proposal.",
+  note = "We usually reply within one business day.",
+  buttonText = "Send brief & request pricing",
+
+  regions,
+  budgets,
+}: ContactProps) {
+  const REGIONS = useMemo<BrndlyLeadPayload["region"][]>(
+    () =>
+      (regions && regions.length > 0
+        ? regions
+        : ([
+            "Dubai / Middle East",
+            "Romania",
+            "Europe (other)",
+            "Other / remote",
+          ] as BrndlyLeadPayload["region"][])),
+    [regions]
+  );
+
+  const BUDGETS = useMemo<BrndlyLeadPayload["budget"][]>(
+    () =>
+      (budgets && budgets.length > 0
+        ? budgets
+        : ([
+            "€2,000 – €5,000",
+            "€5,000 – €10,000",
+            "€10,000 – €25,000",
+            "€25,000+",
+          ] as BrndlyLeadPayload["budget"][])),
+    [budgets]
+  );
+
   const [name, setName] = useState<string>("");
   const [company, setCompany] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [region, setRegion] = useState<BrndlyLeadPayload["region"]>(REGIONS[0]);
   const [budget, setBudget] = useState<BrndlyLeadPayload["budget"]>(BUDGETS[0]);
   const [message, setMessage] = useState<string>("");
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
+    "idle"
+  );
+
+  React.useEffect(() => {
+    if (!REGIONS.includes(region)) setRegion(REGIONS[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [REGIONS.join("||")]);
+
+  React.useEffect(() => {
+    if (!BUDGETS.includes(budget)) setBudget(BUDGETS[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [BUDGETS.join("||")]);
 
   const isValid = useMemo(() => {
     const e = email.trim().toLowerCase();
@@ -61,16 +112,15 @@ export default function Contact({ onSubmitLead }: Props) {
     <section id="contact" className="pb-14 md:pb-20 pt-10">
       <div className="max-w-6xl mx-auto px-4 border border-slate-200 rounded-3xl bg-white/90 shadow-md hover:shadow-xl hover:-translate-y-1 transition-transform transition-shadow duration-300 p-6 md:p-8 flex flex-col md:flex-row gap-8 items-start">
         <div className="md:w-1/2 space-y-4">
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Contact</p>
-
-          <h2 className="text-xl md:text-2xl font-semibold">Ready for 1.5M organic views?</h2>
-
-          <p className="text-sm text-slate-600">
-            Share a few details and our team will get back with a clear content plan,
-            estimated timelines and a price–on–request proposal.
+          <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
+            {kicker}
           </p>
 
-          <p className="text-xs text-slate-500">We usually reply within one business day.</p>
+          <h2 className="text-xl md:text-2xl font-semibold">{title}</h2>
+
+          <p className="text-sm text-slate-600">{subtitle}</p>
+
+          <p className="text-xs text-slate-500">{note}</p>
 
           {status === "sent" && (
             <div className="text-xs rounded-xl border border-slate-200 bg-white p-3 text-slate-700">
@@ -85,7 +135,10 @@ export default function Contact({ onSubmitLead }: Props) {
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="md:w-1/2 grid gap-4 text-xs">
+        <form
+          onSubmit={handleSubmit}
+          className="md:w-1/2 grid gap-4 text-xs"
+        >
           <div className="grid sm:grid-cols-2 gap-4">
             <Field label="Name">
               <input
@@ -120,7 +173,9 @@ export default function Contact({ onSubmitLead }: Props) {
             <Field label="Region">
               <select
                 value={region}
-                onChange={(e) => setRegion(e.target.value as BrndlyLeadPayload["region"])}
+                onChange={(e) =>
+                  setRegion(e.target.value as BrndlyLeadPayload["region"])
+                }
                 className="h-9 rounded-lg border border-slate-200 px-3 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-slate-900"
               >
                 {REGIONS.map((r) => (
@@ -135,7 +190,9 @@ export default function Contact({ onSubmitLead }: Props) {
           <Field label="Approx. monthly budget">
             <select
               value={budget}
-              onChange={(e) => setBudget(e.target.value as BrndlyLeadPayload["budget"])}
+              onChange={(e) =>
+                setBudget(e.target.value as BrndlyLeadPayload["budget"])
+              }
               className="h-9 rounded-lg border border-slate-200 px-3 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-slate-900"
             >
               {BUDGETS.map((b) => (
@@ -158,9 +215,12 @@ export default function Contact({ onSubmitLead }: Props) {
           <button
             type="submit"
             disabled={!isValid || status === "sending" || status === "sent"}
-            className="mt-2 inline-flex items-center justify-center px-6 py-3 rounded-full bg-purple-900 text-white text-xs font-medium uppercase tracking-[0.2em] hover:bg-purple-800 transition disabled:opacity-60 disabled:cursor-not-allowed"
+            className={cn(
+              "mt-2 inline-flex items-center justify-center px-6 py-3 rounded-full bg-purple-900 text-white text-xs font-medium uppercase tracking-[0.2em] hover:bg-purple-800 transition",
+              "disabled:opacity-60 disabled:cursor-not-allowed"
+            )}
           >
-            {status === "sending" ? "Sending..." : "Send brief & request pricing"}
+            {status === "sending" ? "Sending..." : buttonText}
           </button>
         </form>
       </div>

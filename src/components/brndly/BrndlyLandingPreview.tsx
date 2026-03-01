@@ -20,7 +20,7 @@ type HeroMetric = {
   note: string;
 };
 
-type Props = {
+type BrndlyLandingPreviewProps = {
   adminHref?: string;
   onSubmitLead?: (payload: BrndlyLeadPayload) => Promise<void> | void;
   config?: HomeConfig | null;
@@ -35,7 +35,7 @@ export default function BrndlyLandingPreview({
   config,
   editable = false,
   onConfigChange,
-}: Props) {
+}: BrndlyLandingPreviewProps) {
   const cfg = mergeHomeConfig(config ?? DEFAULT_HOME_CONFIG);
 
   function patchHero(partial: Partial<HomeConfig["hero"]>) {
@@ -97,7 +97,14 @@ export default function BrndlyLandingPreview({
           />
         )}
 
-        {cfg.sections.regions && <Regions />}
+        {cfg.sections.regions && (
+          <Regions
+            kicker={cfg.regions.kicker}
+            title={cfg.regions.title}
+            sideNote={cfg.regions.sideNote}
+            cards={cfg.regions.cards}
+          />
+        )}
 
         {cfg.sections.portfolio && (
           <Portfolio
@@ -109,7 +116,19 @@ export default function BrndlyLandingPreview({
         )}
 
         {cfg.sections.pricing && <Pricing />}
-        {cfg.sections.contact && <Contact onSubmitLead={onSubmitLead} />}
+
+        {cfg.sections.contact && (
+          <Contact
+            onSubmitLead={onSubmitLead}
+            kicker={cfg.contact.kicker}
+            title={cfg.contact.title}
+            subtitle={cfg.contact.subtitle}
+            note={cfg.contact.note}
+            buttonText={cfg.contact.buttonText}
+            regions={cfg.contact.regions as any}
+            budgets={cfg.contact.budgets as any}
+          />
+        )}
       </main>
 
       <Footer />

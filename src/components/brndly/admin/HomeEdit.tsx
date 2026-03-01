@@ -1,17 +1,19 @@
 // src/components/brndly/admin/HomeEdit.tsx
 import React from "react";
+import { supabase } from "@/lib/supabase";
+import BrndlyLandingPreview from "@/components/brndly/BrndlyLandingPreview";
+import { ChevronDown, Plus, Trash2 } from "lucide-react";
+
 import { useHomeConfig } from "./useHomeConfig";
 import type {
-  HomeSectionKey,
-  HomeConfig,
+  AboutCard,
   BrandCardItem,
+  HomeConfig,
+  HomeSectionKey,
   PortfolioItem,
   PortfolioPlatform,
-  AboutCard,
+  RegionCardItem,
 } from "./homeConfig";
-import BrndlyLandingPreview from "@/components/brndly/BrndlyLandingPreview";
-import { Plus, Trash2, ChevronDown } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -28,13 +30,33 @@ const SECTION_LABELS: Record<HomeSectionKey, string> = {
 };
 
 function Panel(props: {
+  id: string;
   title: string;
   subtitle?: string;
   defaultOpen?: boolean;
   children: React.ReactNode;
 }) {
-  const { title, subtitle, defaultOpen = false, children } = props;
-  const [open, setOpen] = React.useState(defaultOpen);
+  const { id, title, subtitle, defaultOpen = false, children } = props;
+  const STORAGE_KEY = `brndly_homeedit_panel_open_${id}`;
+
+  const [open, setOpen] = React.useState<boolean>(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw === "1") return true;
+      if (raw === "0") return false;
+      return defaultOpen;
+    } catch {
+      return defaultOpen;
+    }
+  });
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, open ? "1" : "0");
+    } catch {
+      // ignore
+    }
+  }, [open, STORAGE_KEY]);
 
   return (
     <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
@@ -45,10 +67,11 @@ function Panel(props: {
       >
         <div>
           <div className="text-sm font-semibold">{title}</div>
-          {subtitle && (
+          {subtitle ? (
             <div className="text-xs text-slate-500 mt-1">{subtitle}</div>
-          )}
+          ) : null}
         </div>
+
         <ChevronDown
           className={cn(
             "h-4 w-4 text-slate-500 transition-transform",
@@ -57,7 +80,9 @@ function Panel(props: {
         />
       </button>
 
-      {open && <div className="p-5 border-t border-slate-200">{children}</div>}
+      {open ? (
+        <div className="p-5 border-t border-slate-200">{children}</div>
+      ) : null}
     </div>
   );
 }
@@ -103,6 +128,7 @@ function ToggleRow(props: {
   onChange: (v: boolean) => void;
 }) {
   const { label, checked, onChange } = props;
+
   return (
     <button
       type="button"
@@ -115,6 +141,7 @@ function ToggleRow(props: {
       )}
     >
       <div className="text-sm">{label}</div>
+
       <span
         className={cn(
           "h-6 w-11 rounded-full border flex items-center px-1",
@@ -134,7 +161,10 @@ export default function HomeEdit() {
     useHomeConfig();
 
   function setSectionEnabled(key: HomeSectionKey, enabled: boolean) {
-    setConfig({ ...config, sections: { ...config.sections, [key]: enabled } });
+    setConfig({
+      ...config,
+      sections: { ...config.sections, [key]: enabled },
+    });
   }
 
   function setHero(partial: Partial<HomeConfig["hero"]>) {
@@ -153,13 +183,13 @@ export default function HomeEdit() {
   }
 
   function addAboutBullet() {
-    const next = [...(config.about.bullets ?? []), "New bullet..."];
-    setAbout({ bullets: next });
+    setAbout({ bullets: [...(config.about.bullets ?? []), "New bullet..."] });
   }
 
   function removeAboutBullet(index: number) {
-    const next = (config.about.bullets ?? []).filter((_, i) => i !== index);
-    setAbout({ bullets: next });
+    setAbout({
+      bullets: (config.about.bullets ?? []).filter((_, i) => i !== index),
+    });
   }
 
   function updateAboutCard(index: number, partial: Partial<AboutCard>) {
@@ -174,7 +204,7 @@ export default function HomeEdit() {
   }
 
   function updateBrandCard(index: number, partial: Partial<BrandCardItem>) {
-    const next = config.brands.cards.map((c, i) =>
+    const next = (config.brands.cards ?? []).map((c, i) =>
       i === index ? { ...c, ...partial } : c
     );
     setBrands({ cards: next });
@@ -182,15 +212,46 @@ export default function HomeEdit() {
 
   function addBrandCard() {
     const next: BrandCardItem[] = [
-      ...config.brands.cards,
+      ...(config.brands.cards ?? []),
       { tag: "New", title: "New card title", note: "Short note..." },
     ];
     setBrands({ cards: next });
   }
 
   function removeBrandCard(index: number) {
-    const next = config.brands.cards.filter((_, i) => i !== index);
-    setBrands({ cards: next });
+    setBrands({
+      cards: (config.brands.cards ?? []).filter((_, i) => i !== index),
+    });
+  }
+
+  function setRegions(partial: Partial<HomeConfig["regions"]>) {
+    setConfig({ ...config, regions: { ...config.regions, ...partial } });
+  }
+
+  function updateRegionCard(index: number, partial: Partial<RegionCardItem>) {
+    const next = (config.regions.cards ?? []).map((c, i) =>
+      i === index ? { ...c, ...partial } : c
+    );
+    setRegions({ cards: next });
+  }
+
+  function addRegionCard() {
+    const next: RegionCardItem[] = [
+      ...(config.regions.cards ?? []),
+      {
+        id: `region_${Date.now()}`,
+        tag: "New region",
+        title: "New title",
+        desc: "Short description...",
+      },
+    ];
+    setRegions({ cards: next });
+  }
+
+  function removeRegionCard(index: number) {
+    setRegions({
+      cards: (config.regions.cards ?? []).filter((_, i) => i !== index),
+    });
   }
 
   function setPortfolio(partial: Partial<HomeConfig["portfolio"]>) {
@@ -198,7 +259,7 @@ export default function HomeEdit() {
   }
 
   function updatePortfolioItem(index: number, partial: Partial<PortfolioItem>) {
-    const next = config.portfolio.items.map((it, i) =>
+    const next = (config.portfolio.items ?? []).map((it, i) =>
       i === index ? { ...it, ...partial } : it
     );
     setPortfolio({ items: next });
@@ -206,7 +267,7 @@ export default function HomeEdit() {
 
   function addPortfolioItem() {
     const next: PortfolioItem[] = [
-      ...config.portfolio.items,
+      ...(config.portfolio.items ?? []),
       {
         title: "New video",
         platform: "reels",
@@ -221,8 +282,47 @@ export default function HomeEdit() {
   }
 
   function removePortfolioItem(index: number) {
-    const next = config.portfolio.items.filter((_, i) => i !== index);
-    setPortfolio({ items: next });
+    setPortfolio({
+      items: (config.portfolio.items ?? []).filter((_, i) => i !== index),
+    });
+  }
+
+  function setContact(partial: Partial<HomeConfig["contact"]>) {
+    setConfig({ ...config, contact: { ...config.contact, ...partial } });
+  }
+
+  function updateContactRegion(index: number, value: string) {
+    const next = (config.contact.regions ?? []).map((x, i) =>
+      i === index ? value : x
+    );
+    setContact({ regions: next });
+  }
+
+  function addContactRegion() {
+    setContact({ regions: [...(config.contact.regions ?? []), "New / region"] });
+  }
+
+  function removeContactRegion(index: number) {
+    setContact({
+      regions: (config.contact.regions ?? []).filter((_, i) => i !== index),
+    });
+  }
+
+  function updateContactBudget(index: number, value: string) {
+    const next = (config.contact.budgets ?? []).map((x, i) =>
+      i === index ? value : x
+    );
+    setContact({ budgets: next });
+  }
+
+  function addContactBudget() {
+    setContact({ budgets: [...(config.contact.budgets ?? []), "New budget"] });
+  }
+
+  function removeContactBudget(index: number) {
+    setContact({
+      budgets: (config.contact.budgets ?? []).filter((_, i) => i !== index),
+    });
   }
 
   async function uploadHeroReelVideo(file: File) {
@@ -257,41 +357,42 @@ export default function HomeEdit() {
 
         <div className="flex items-center gap-2">
           <button
-            onClick={reset}
-            className="h-10 px-4 rounded-full border border-slate-200 bg-white text-xs uppercase tracking-[0.18em] hover:bg-slate-50"
             type="button"
+            onClick={reset}
             disabled={loading || saving}
+            className="h-10 px-4 rounded-full border border-slate-200 bg-white text-xs uppercase tracking-[0.18em] hover:bg-slate-50 disabled:opacity-60"
           >
             Reset
           </button>
 
           <button
-            onClick={handleSave}
-            className="h-10 px-4 rounded-full bg-purple-900 text-white text-xs uppercase tracking-[0.18em] hover:bg-purple-800 disabled:opacity-60"
             type="button"
+            onClick={handleSave}
             disabled={loading || saving}
+            className="h-10 px-4 rounded-full bg-purple-900 text-white text-xs uppercase tracking-[0.18em] hover:bg-purple-800 disabled:opacity-60"
           >
             {saving ? "Saving..." : "Save"}
           </button>
         </div>
       </div>
 
-      {error && (
+      {error ? (
         <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
           ❌ {error}
         </div>
-      )}
+      ) : null}
 
-      {savedTick > 0 && !error && (
+      {savedTick > 0 && !error ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
           ✅ Saved. (DB updated)
         </div>
-      )}
+      ) : null}
 
       <div className="grid lg:grid-cols-[560px_1fr] gap-6 items-start">
         {/* LEFT: EDITOR */}
         <div className="grid gap-6">
           <Panel
+            id="sections"
             title="Show / Hide sections"
             subtitle="Activează/dezactivează secțiuni."
             defaultOpen
@@ -309,6 +410,7 @@ export default function HomeEdit() {
           </Panel>
 
           <Panel
+            id="hero"
             title="Hero"
             subtitle="Editează textele + video + metrics/chips din Hero."
             defaultOpen
@@ -328,6 +430,7 @@ export default function HomeEdit() {
                     onChange={(e) => setHero({ titleLine1: e.target.value })}
                   />
                 </Field>
+
                 <Field label="Title line 2">
                   <Input
                     value={config.hero.titleLine2}
@@ -350,6 +453,7 @@ export default function HomeEdit() {
                     onChange={(e) => setHero({ ctaPrimary: e.target.value })}
                   />
                 </Field>
+
                 <Field label="Secondary CTA">
                   <Input
                     value={config.hero.ctaSecondary}
@@ -364,6 +468,7 @@ export default function HomeEdit() {
                     <input
                       type="file"
                       accept="video/*"
+                      className="block w-full text-sm"
                       onChange={async (e) => {
                         const f = e.target.files?.[0];
                         if (!f) return;
@@ -378,7 +483,6 @@ export default function HomeEdit() {
                           e.currentTarget.value = "";
                         }
                       }}
-                      className="block w-full text-sm"
                     />
 
                     <button
@@ -429,6 +533,7 @@ export default function HomeEdit() {
                       <div className="grid grid-cols-2 gap-2">
                         <Input
                           value={m.label}
+                          placeholder="Label"
                           onChange={(e) => {
                             const next = (config.hero.metrics || []).map((x) =>
                               x.id === m.id
@@ -437,10 +542,11 @@ export default function HomeEdit() {
                             );
                             setHero({ metrics: next });
                           }}
-                          placeholder="Label"
                         />
+
                         <Input
                           value={m.value}
+                          placeholder="Value"
                           onChange={(e) => {
                             const next = (config.hero.metrics || []).map((x) =>
                               x.id === m.id
@@ -449,19 +555,18 @@ export default function HomeEdit() {
                             );
                             setHero({ metrics: next });
                           }}
-                          placeholder="Value"
                         />
                       </div>
 
                       <Input
                         value={m.note}
+                        placeholder="Note"
                         onChange={(e) => {
                           const next = (config.hero.metrics || []).map((x) =>
                             x.id === m.id ? { ...x, note: e.target.value } : x
                           );
                           setHero({ metrics: next });
                         }}
-                        placeholder="Note"
                       />
                     </div>
                   ))}
@@ -474,6 +579,7 @@ export default function HomeEdit() {
                     <Input
                       key={i}
                       value={c}
+                      placeholder={`Chip ${i + 1}`}
                       onChange={(e) => {
                         const base = (config.hero.chips || ["", "", ""]).slice(
                           0,
@@ -482,7 +588,6 @@ export default function HomeEdit() {
                         base[i] = e.target.value;
                         setHero({ chips: base });
                       }}
-                      placeholder={`Chip ${i + 1}`}
                     />
                   ))}
                 </div>
@@ -490,8 +595,8 @@ export default function HomeEdit() {
             </div>
           </Panel>
 
-          {/* ✅ NEW: ABOUT PANEL */}
           <Panel
+            id="about"
             title="About"
             subtitle="Editează secțiunea What we actually do."
           >
@@ -526,7 +631,8 @@ export default function HomeEdit() {
                   onClick={addAboutBullet}
                   className="h-9 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs flex items-center gap-2"
                 >
-                  <Plus className="h-4 w-4" /> Add bullet
+                  <Plus className="h-4 w-4" />
+                  Add bullet
                 </button>
               </div>
 
@@ -535,9 +641,7 @@ export default function HomeEdit() {
                   <div key={idx} className="flex items-start gap-2">
                     <Input
                       value={b}
-                      onChange={(e) =>
-                        updateAboutBullet(idx, e.target.value)
-                      }
+                      onChange={(e) => updateAboutBullet(idx, e.target.value)}
                     />
                     <button
                       type="button"
@@ -559,9 +663,7 @@ export default function HomeEdit() {
                       key={c.id ?? String(idx)}
                       className="rounded-2xl border border-slate-200 p-4 grid gap-3"
                     >
-                      <div className="text-sm font-medium">
-                        Card #{idx + 1}
-                      </div>
+                      <div className="text-sm font-medium">Card #{idx + 1}</div>
 
                       <Field label="Overline (ex: 01 · STRATEGY)">
                         <Input
@@ -599,6 +701,7 @@ export default function HomeEdit() {
           </Panel>
 
           <Panel
+            id="brands"
             title="Brands"
             subtitle="Editează heading + carduri (tag/title/note)."
           >
@@ -610,6 +713,7 @@ export default function HomeEdit() {
                     onChange={(e) => setBrands({ kicker: e.target.value })}
                   />
                 </Field>
+
                 <Field label="Title">
                   <Input
                     value={config.brands.title}
@@ -632,12 +736,13 @@ export default function HomeEdit() {
                   onClick={addBrandCard}
                   className="h-9 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs flex items-center gap-2"
                 >
-                  <Plus className="h-4 w-4" /> Add card
+                  <Plus className="h-4 w-4" />
+                  Add card
                 </button>
               </div>
 
               <div className="grid gap-3">
-                {config.brands.cards.map((c, idx) => (
+                {(config.brands.cards ?? []).map((c, idx) => (
                   <div
                     key={idx}
                     className="rounded-2xl border border-slate-200 p-4 grid gap-3"
@@ -649,7 +754,8 @@ export default function HomeEdit() {
                         onClick={() => removeBrandCard(idx)}
                         className="h-9 px-3 rounded-xl border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 text-xs flex items-center gap-2"
                       >
-                        <Trash2 className="h-4 w-4" /> Remove
+                        <Trash2 className="h-4 w-4" />
+                        Remove
                       </button>
                     </div>
 
@@ -662,6 +768,7 @@ export default function HomeEdit() {
                           }
                         />
                       </Field>
+
                       <Field label="Title">
                         <Input
                           value={c.title}
@@ -670,6 +777,7 @@ export default function HomeEdit() {
                           }
                         />
                       </Field>
+
                       <Field label="Note">
                         <Input
                           value={c.note}
@@ -686,6 +794,100 @@ export default function HomeEdit() {
           </Panel>
 
           <Panel
+            id="regions"
+            title="Regions"
+            subtitle="Editează secțiunea Regions (kicker/title/side note + cards)."
+          >
+            <div className="grid gap-3">
+              <div className="grid sm:grid-cols-2 gap-3">
+                <Field label="Kicker">
+                  <Input
+                    value={config.regions.kicker}
+                    onChange={(e) => setRegions({ kicker: e.target.value })}
+                  />
+                </Field>
+
+                <Field label="Title">
+                  <Input
+                    value={config.regions.title}
+                    onChange={(e) => setRegions({ title: e.target.value })}
+                  />
+                </Field>
+              </div>
+
+              <Field label="Side note (right text)">
+                <Textarea
+                  value={config.regions.sideNote}
+                  onChange={(e) => setRegions({ sideNote: e.target.value })}
+                />
+              </Field>
+
+              <div className="flex items-center justify-between pt-2">
+                <div className="text-sm font-semibold">Cards</div>
+                <button
+                  type="button"
+                  onClick={addRegionCard}
+                  className="h-9 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add card
+                </button>
+              </div>
+
+              <div className="grid gap-3">
+                {(config.regions.cards ?? []).map((c, idx) => (
+                  <div
+                    key={c.id ?? String(idx)}
+                    className="rounded-2xl border border-slate-200 p-4 grid gap-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm font-medium">Card #{idx + 1}</div>
+                      <button
+                        type="button"
+                        onClick={() => removeRegionCard(idx)}
+                        className="h-9 px-3 rounded-xl border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 text-xs flex items-center gap-2"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Remove
+                      </button>
+                    </div>
+
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <Field label="Tag">
+                        <Input
+                          value={c.tag}
+                          onChange={(e) =>
+                            updateRegionCard(idx, { tag: e.target.value })
+                          }
+                        />
+                      </Field>
+
+                      <Field label="Title">
+                        <Input
+                          value={c.title}
+                          onChange={(e) =>
+                            updateRegionCard(idx, { title: e.target.value })
+                          }
+                        />
+                      </Field>
+                    </div>
+
+                    <Field label="Description">
+                      <Textarea
+                        value={c.desc}
+                        onChange={(e) =>
+                          updateRegionCard(idx, { desc: e.target.value })
+                        }
+                      />
+                    </Field>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Panel>
+
+          <Panel
+            id="portfolio"
             title="Portfolio"
             subtitle="Editează heading + lista de videos (thumb + link + texte)."
           >
@@ -697,6 +899,7 @@ export default function HomeEdit() {
                     onChange={(e) => setPortfolio({ kicker: e.target.value })}
                   />
                 </Field>
+
                 <Field label="Title">
                   <Input
                     value={config.portfolio.title}
@@ -719,12 +922,13 @@ export default function HomeEdit() {
                   onClick={addPortfolioItem}
                   className="h-9 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs flex items-center gap-2"
                 >
-                  <Plus className="h-4 w-4" /> Add video
+                  <Plus className="h-4 w-4" />
+                  Add video
                 </button>
               </div>
 
               <div className="grid gap-3">
-                {config.portfolio.items.map((it, idx) => (
+                {(config.portfolio.items ?? []).map((it, idx) => (
                   <div
                     key={idx}
                     className="rounded-2xl border border-slate-200 p-4 grid gap-3"
@@ -736,7 +940,8 @@ export default function HomeEdit() {
                         onClick={() => removePortfolioItem(idx)}
                         className="h-9 px-3 rounded-xl border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 text-xs flex items-center gap-2"
                       >
-                        <Trash2 className="h-4 w-4" /> Remove
+                        <Trash2 className="h-4 w-4" />
+                        Remove
                       </button>
                     </div>
 
@@ -773,7 +978,9 @@ export default function HomeEdit() {
                         <Input
                           value={it.thumbUrl}
                           onChange={(e) =>
-                            updatePortfolioItem(idx, { thumbUrl: e.target.value })
+                            updatePortfolioItem(idx, {
+                              thumbUrl: e.target.value,
+                            })
                           }
                         />
                       </Field>
@@ -782,7 +989,9 @@ export default function HomeEdit() {
                         <Input
                           value={it.videoUrl}
                           onChange={(e) =>
-                            updatePortfolioItem(idx, { videoUrl: e.target.value })
+                            updatePortfolioItem(idx, {
+                              videoUrl: e.target.value,
+                            })
                           }
                         />
                       </Field>
@@ -793,10 +1002,13 @@ export default function HomeEdit() {
                         <Input
                           value={it.viewsText}
                           onChange={(e) =>
-                            updatePortfolioItem(idx, { viewsText: e.target.value })
+                            updatePortfolioItem(idx, {
+                              viewsText: e.target.value,
+                            })
                           }
                         />
                       </Field>
+
                       <Field label="Engagement text">
                         <Input
                           value={it.engagementText}
@@ -821,6 +1033,121 @@ export default function HomeEdit() {
                     </Field>
                   </div>
                 ))}
+              </div>
+            </div>
+          </Panel>
+
+          <Panel
+            id="contact"
+            title="Contact"
+            subtitle="Editează textele + buton + opțiunile Region/Budget."
+          >
+            <div className="grid gap-3">
+              <div className="grid sm:grid-cols-2 gap-3">
+                <Field label="Kicker">
+                  <Input
+                    value={config.contact.kicker}
+                    onChange={(e) => setContact({ kicker: e.target.value })}
+                  />
+                </Field>
+
+                <Field label="Button text">
+                  <Input
+                    value={config.contact.buttonText}
+                    onChange={(e) =>
+                      setContact({ buttonText: e.target.value })
+                    }
+                  />
+                </Field>
+              </div>
+
+              <Field label="Title">
+                <Input
+                  value={config.contact.title}
+                  onChange={(e) => setContact({ title: e.target.value })}
+                />
+              </Field>
+
+              <Field label="Subtitle">
+                <Textarea
+                  value={config.contact.subtitle}
+                  onChange={(e) => setContact({ subtitle: e.target.value })}
+                />
+              </Field>
+
+              <Field label="Note (small text)">
+                <Input
+                  value={config.contact.note}
+                  onChange={(e) => setContact({ note: e.target.value })}
+                />
+              </Field>
+
+              <div className="pt-2">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-semibold">Region options</div>
+                  <button
+                    type="button"
+                    onClick={addContactRegion}
+                    className="h-9 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add
+                  </button>
+                </div>
+
+                <div className="mt-2 grid gap-2">
+                  {(config.contact.regions ?? []).map((v, idx) => (
+                    <div key={idx} className="flex items-start gap-2">
+                      <Input
+                        value={v}
+                        onChange={(e) =>
+                          updateContactRegion(idx, e.target.value)
+                        }
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeContactRegion(idx)}
+                        className="h-10 px-3 rounded-xl border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 text-xs flex items-center gap-2"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-semibold">Budget options</div>
+                  <button
+                    type="button"
+                    onClick={addContactBudget}
+                    className="h-9 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add
+                  </button>
+                </div>
+
+                <div className="mt-2 grid gap-2">
+                  {(config.contact.budgets ?? []).map((v, idx) => (
+                    <div key={idx} className="flex items-start gap-2">
+                      <Input
+                        value={v}
+                        onChange={(e) =>
+                          updateContactBudget(idx, e.target.value)
+                        }
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeContactBudget(idx)}
+                        className="h-10 px-3 rounded-xl border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 text-xs flex items-center gap-2"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </Panel>
@@ -856,6 +1183,8 @@ export default function HomeEdit() {
           </div>
         </div>
       </div>
+
+      {/* IMPORTANT: keep this file self-contained - no extra exports */}
     </div>
   );
 }

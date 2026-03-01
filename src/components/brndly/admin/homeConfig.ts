@@ -41,6 +41,24 @@ export type AboutCard = {
   description: string;
 };
 
+export type RegionCardItem = {
+  id: string;
+  tag: string; // "Middle East" / "Europe" etc
+  title: string;
+  desc: string;
+};
+
+export type ContactConfig = {
+  kicker: string;
+  title: string;
+  subtitle: string;
+  note: string;
+  buttonText: string;
+
+  regions: string[];
+  budgets: string[];
+};
+
 export type HomeConfig = {
   sections: Record<HomeSectionKey, boolean>;
 
@@ -59,7 +77,6 @@ export type HomeConfig = {
     chips: string[];
   };
 
-  // ✅ NEW: About editable
   about: {
     kicker: string;
     title: string;
@@ -75,12 +92,21 @@ export type HomeConfig = {
     cards: BrandCardItem[];
   };
 
+  regions: {
+    kicker: string;
+    title: string;
+    sideNote: string;
+    cards: RegionCardItem[];
+  };
+
   portfolio: {
     kicker: string;
     title: string;
     ctaText: string;
     items: PortfolioItem[];
   };
+
+  contact: ContactConfig;
 };
 
 export const DEFAULT_HOME_CONFIG: HomeConfig = {
@@ -181,6 +207,33 @@ export const DEFAULT_HOME_CONFIG: HomeConfig = {
     ],
   },
 
+  regions: {
+    kicker: "Regions",
+    title: "On the ground across two continents.",
+    sideNote:
+      "Local crews, local context. We know how to film content that feels native in each city.",
+    cards: [
+      {
+        id: "me",
+        tag: "Middle East",
+        title: "Dubai & GCC",
+        desc: "Skyline, desert, yachts – we know every iconic angle and hidden spot.",
+      },
+      {
+        id: "eu",
+        tag: "Europe",
+        title: "Romania & EU hubs",
+        desc: "From Old Town streets to glass towers – perfect visuals for any brand.",
+      },
+      {
+        id: "remote",
+        tag: "Remote brands",
+        title: "Online & hybrid setups",
+        desc: "We design remote-friendly formats and coach you on–camera when needed.",
+      },
+    ],
+  },
+
   portfolio: {
     kicker: "Popular videos",
     title: "Snaps from recent campaigns.",
@@ -218,9 +271,26 @@ export const DEFAULT_HOME_CONFIG: HomeConfig = {
       },
     ],
   },
+
+  contact: {
+    kicker: "Contact",
+    title: "Ready for 1.5M organic views?",
+    subtitle:
+      "Share a few details and our team will get back with a clear content plan, estimated timelines and a price–on–request proposal.",
+    note: "We usually reply within one business day.",
+    buttonText: "Send brief & request pricing",
+    regions: [
+      "Dubai / Middle East",
+      "Romania",
+      "Europe (other)",
+      "Other / remote",
+    ],
+    budgets: ["€2,000 – €5,000", "€5,000 – €10,000", "€10,000 – €25,000", "€25,000+"],
+  },
 };
 
-export const HOME_CONFIG_CACHE_KEY = "brndly_home_config_cache_v5";
+// bump when schema changes
+export const HOME_CONFIG_CACHE_KEY = "brndly_home_config_cache_v6";
 
 export function safeParse<T>(s: string | null): T | null {
   if (!s) return null;
@@ -255,7 +325,7 @@ function normalizeChips(v: unknown): string[] | null {
 
 function normalizeAboutBullets(v: unknown): string[] | null {
   if (!isNonEmptyArray<any>(v)) return null;
-  return v.map((x) => String(x ?? "")).filter(Boolean).slice(0, 8);
+  return v.map((x) => String(x ?? "")).filter(Boolean).slice(0, 12);
 }
 
 function normalizeAboutCards(v: unknown): AboutCard[] | null {
@@ -267,7 +337,24 @@ function normalizeAboutCards(v: unknown): AboutCard[] | null {
       title: String(c?.title ?? ""),
       description: String(c?.description ?? ""),
     }))
-    .slice(0, 8);
+    .slice(0, 12);
+}
+
+function normalizeRegionCards(v: unknown): RegionCardItem[] | null {
+  if (!isNonEmptyArray<any>(v)) return null;
+  return v
+    .map((c, i) => ({
+      id: String(c?.id ?? `region${i}`),
+      tag: String(c?.tag ?? ""),
+      title: String(c?.title ?? ""),
+      desc: String(c?.desc ?? ""),
+    }))
+    .slice(0, 12);
+}
+
+function normalizeStrings(v: unknown, max = 30): string[] | null {
+  if (!isNonEmptyArray<any>(v)) return null;
+  return v.map((x) => String(x ?? "")).filter(Boolean).slice(0, max);
 }
 
 export function mergeHomeConfig(
@@ -318,6 +405,14 @@ export function mergeHomeConfig(
         : DEFAULT_HOME_CONFIG.brands.cards,
     },
 
+    regions: {
+      ...DEFAULT_HOME_CONFIG.regions,
+      ...(raw.regions ?? {}),
+      cards:
+        normalizeRegionCards((raw.regions as any)?.cards) ??
+        DEFAULT_HOME_CONFIG.regions.cards,
+    },
+
     portfolio: {
       ...DEFAULT_HOME_CONFIG.portfolio,
       ...(raw.portfolio ?? {}),
@@ -337,15 +432,24 @@ export function mergeHomeConfig(
           }))
         : DEFAULT_HOME_CONFIG.portfolio.items,
     },
+
+    contact: {
+      ...DEFAULT_HOME_CONFIG.contact,
+      ...(raw.contact ?? {}),
+      regions:
+        normalizeStrings((raw.contact as any)?.regions, 30) ??
+        DEFAULT_HOME_CONFIG.contact.regions,
+      budgets:
+        normalizeStrings((raw.contact as any)?.budgets, 30) ??
+        DEFAULT_HOME_CONFIG.contact.budgets,
+    },
   };
 
   return merged;
 }
 
 export function loadCachedHomeConfig(): HomeConfig {
-  const raw = safeParse<HomeConfig>(
-    localStorage.getItem(HOME_CONFIG_CACHE_KEY)
-  );
+  const raw = safeParse<HomeConfig>(localStorage.getItem(HOME_CONFIG_CACHE_KEY));
   return mergeHomeConfig(raw ?? null);
 }
 
