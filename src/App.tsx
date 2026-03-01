@@ -1,10 +1,14 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import HomePage from "@/pages/Home";
+
 import AdminLayout from "@/components/brndly/admin/AdminLayout";
 import AdminGuard from "@/components/brndly/admin/AdminGuard";
+
 import HomeEdit from "@/components/brndly/admin/HomeEdit";
 import AdminLoginPage from "@/pages/admin/AdminLogin";
+
+import LeadsPage from "@/pages/admin/Leads";
 
 export default function App() {
   return (
@@ -23,6 +27,9 @@ export default function App() {
         >
           <Route index element={<Navigate to="home" replace />} />
           <Route path="home" element={<HomeEdit />} />
+
+          {/* ✅ NEW */}
+          <Route path="leads" element={<LeadsPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

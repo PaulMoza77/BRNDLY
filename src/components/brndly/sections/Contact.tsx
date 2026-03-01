@@ -1,8 +1,10 @@
 // src/components/brndly/sections/Contact.tsx
 import React, { useMemo, useState } from "react";
+import { supabase } from "@/lib/supabase";
 import type { BrndlyLeadPayload } from "../types";
 
 type ContactProps = {
+  // optional hook (ex: send email / slack). We still ALWAYS save in DB.
   onSubmitLead?: (payload: BrndlyLeadPayload) => Promise<void> | void;
 
   kicker?: string;
@@ -17,6 +19,10 @@ type ContactProps = {
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
+}
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim().toLowerCase());
 }
 
 export default function Contact({
@@ -58,16 +64,17 @@ export default function Contact({
     [budgets]
   );
 
-  const [name, setName] = useState<string>("");
-  const [company, setCompany] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
+  const [name, setName] = useState("");
+  const [company, setCompany] = useState("");
+  const [email, setEmail] = useState("");
   const [region, setRegion] = useState<BrndlyLeadPayload["region"]>(REGIONS[0]);
   const [budget, setBudget] = useState<BrndlyLeadPayload["budget"]>(BUDGETS[0]);
-  const [message, setMessage] = useState<string>("");
+  const [message, setMessage] = useState("");
 
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
     "idle"
   );
+  const [errorText, setErrorText] = useState<string | null>(null);
 
   React.useEffect(() => {
     if (!REGIONS.includes(region)) setRegion(REGIONS[0]);
@@ -80,9 +87,11 @@ export default function Contact({
   }, [BUDGETS.join("||")]);
 
   const isValid = useMemo(() => {
-    const e = email.trim().toLowerCase();
-    const okEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
-    return name.trim().length >= 2 && company.trim().length >= 2 && okEmail;
+    return (
+      name.trim().length >= 2 &&
+      company.trim().length >= 2 &&
+      isValidEmail(email)
+    );
   }, [name, company, email]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -90,6 +99,7 @@ export default function Contact({
     if (!isValid || status === "sending") return;
 
     setStatus("sending");
+    setErrorText(null);
 
     const payload: BrndlyLeadPayload = {
       name: name.trim(),
@@ -101,9 +111,35 @@ export default function Contact({
     };
 
     try {
+      // 1) ALWAYS save to DB
+      const { error } = await supabase.from("contact_messages").insert({
+        name: payload.name || null,
+        email: payload.email,
+        phone: null,
+
+        company: payload.company || null,
+        region: payload.region || null,
+        budget: payload.budget || null,
+
+        message: payload.message || null,
+      });
+
+      if (error) throw error;
+
+      // 2) Optional side-effects (email/slack/etc)
       if (onSubmitLead) await onSubmitLead(payload);
+
+      // success UI + reset
       setStatus("sent");
-    } catch {
+      setName("");
+      setCompany("");
+      setEmail("");
+      setRegion(REGIONS[0]);
+      setBudget(BUDGETS[0]);
+      setMessage("");
+    } catch (err: any) {
+      console.error(err);
+      setErrorText(err?.message ?? "Something went wrong. Please try again.");
       setStatus("error");
     }
   }
@@ -130,15 +166,12 @@ export default function Contact({
 
           {status === "error" && (
             <div className="text-xs rounded-xl border border-red-200 bg-red-50 p-3 text-red-700">
-              Something went wrong. Please try again.
+              {errorText ?? "Something went wrong. Please try again."}
             </div>
           )}
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="md:w-1/2 grid gap-4 text-xs"
-        >
+        <form onSubmit={handleSubmit} className="md:w-1/2 grid gap-4 text-xs">
           <div className="grid sm:grid-cols-2 gap-4">
             <Field label="Name">
               <input
@@ -146,6 +179,7 @@ export default function Contact({
                 onChange={(e) => setName(e.target.value)}
                 className="h-9 rounded-lg border border-slate-200 px-3 text-xs focus:outline-none focus:ring-1 focus:ring-slate-900"
                 placeholder="Full name"
+                autoComplete="name"
               />
             </Field>
 
@@ -155,6 +189,7 @@ export default function Contact({
                 onChange={(e) => setCompany(e.target.value)}
                 className="h-9 rounded-lg border border-slate-200 px-3 text-xs focus:outline-none focus:ring-1 focus:ring-slate-900"
                 placeholder="Brand name"
+                autoComplete="organization"
               />
             </Field>
           </div>
@@ -167,6 +202,7 @@ export default function Contact({
                 onChange={(e) => setEmail(e.target.value)}
                 className="h-9 rounded-lg border border-slate-200 px-3 text-xs focus:outline-none focus:ring-1 focus:ring-slate-900"
                 placeholder="you@brand.com"
+                autoComplete="email"
               />
             </Field>
 
@@ -230,7 +266,6 @@ export default function Contact({
 
 function Field(props: { label: string; children: React.ReactNode }) {
   const { label, children } = props;
-
   return (
     <div className="flex flex-col gap-1">
       <label className="uppercase tracking-[0.2em] text-[10px] text-slate-500">

@@ -1,7 +1,13 @@
 import React from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import { ChevronLeft, ChevronRight, Home, LogOut } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Home,
+  LogOut,
+  Users,
+} from "lucide-react";
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -18,7 +24,7 @@ export default function AdminLayout() {
 
   const nav = [
     { to: "/admin/home", label: "Home Edit", icon: Home },
-    // pe viitor: /admin/media, /admin/portfolio, /admin/brands etc.
+    { to: "/admin/leads", label: "Leads", icon: Users }, // ✅ NEW
   ];
 
   return (
@@ -77,7 +83,9 @@ export default function AdminLayout() {
                     title={collapsed ? item.label : undefined}
                   >
                     <Icon className="h-4 w-4" />
-                    {!collapsed && <span className="font-medium">{item.label}</span>}
+                    {!collapsed && (
+                      <span className="font-medium">{item.label}</span>
+                    )}
                   </Link>
                 );
               })}
